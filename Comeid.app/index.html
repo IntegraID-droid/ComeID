@@ -1,0 +1,2414 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra ID - Comedor</title>
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Librerías (las pesadas se cargan bajo demanda: xlsx, jspdf, chart, zxing) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+
+    <style id="themeStyles">
+        /* ESTILOS PARA TEMA OSCURO (POR DEFECTO) */
+        
+         :root {
+            --bg-primary: #050b2b;
+            --bg-secondary: #031b4e;
+            --bg-tertiary: #081238;
+            --bg-card: #0c1748;
+            --text-primary: #e0e0e0;
+            --text-secondary: #8cbfff;
+            --text-tertiary: #dce6ff;
+            --border-color: #165bd3;
+            --accent-color: #2b67ff;
+            --accent-hover: #17326f;
+            --success-color: #28a745;
+            --danger-color: #c62828;
+            --warning-color: #ffc107;
+            --header-height: 60px;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+        /* HEADER */
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            height: var(--header-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .header-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .header-user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-about {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header-about:hover {
+            color: var(--accent-color);
+        }
+        /* BOTÓN DE AYUDA EN EL HEADER */
+        
+        .header-help {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 15px;
+        }
+        
+        .header-help:hover {
+            color: var(--accent-color);
+        }
+        
+        .header-menu-toggle {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 20px;
+            display: none;
+        }
+        /* CONTAINER PRINCIPAL */
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            margin-top: var(--header-height);
+        }
+        /* SIDEBAR */
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            transition: width 0.3s, transform 0.3s;
+            height: calc(100vh - var(--header-height));
+            overflow-y: auto;
+            transform: translateX(0);
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+        
+        .sidebar.collapsed .menu button,
+        .sidebar.collapsed .dropdown-btn {
+            justify-content: center;
+            padding: 16px 0;
+        }
+        
+        .sidebar.collapsed .logo,
+        .sidebar.collapsed .menu-title,
+        .sidebar.collapsed .menu button span,
+        .sidebar.collapsed .dropdown-btn span {
+            display: none;
+        }
+        
+        .sidebar.collapsed .menu button i,
+        .sidebar.collapsed .dropdown-btn i {
+            margin: 0 auto;
+        }
+        
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+        
+        .menu-search {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #111d55;
+            color: white;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .menu button {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            justify-content: flex-start;
+        }
+        
+        .menu button i {
+            width: 30px;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+        
+        .menu button:hover {
+            background: var(--accent-hover);
+        }
+        
+        .menu button.active {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .menu button.active i {
+            color: white;
+        }
+        
+        .menu button.hidden {
+            display: none;
+        }
+        
+        .menu-title {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* DROPDOWN EXPORT Y QR */
+        
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .dropdown-btn {
+            width: 100%;
+            padding: 14px 18px;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            text-align: left;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .dropdown-btn i {
+            width: 30px;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+        
+        .dropdown-btn:hover {
+            background: var(--accent-hover);
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--bg-tertiary);
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            left: 0;
+            top: 100%;
+            margin-top: 5px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-content a,
+        .dropdown-content button {
+            color: var(--text-tertiary);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.25s ease;
+        }
+        
+        .dropdown-content a:hover,
+        .dropdown-content button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .dropdown-content a i,
+        .dropdown-content button i {
+            margin-right: 8px;
+        }
+        /* CONTENT */
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - var(--header-height));
+        }
+        
+        .title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        /* CARDS */
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 5px rgba(0, 191, 255, 0.1);
+        }
+        
+        .card h3 {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .card span {
+            display: block;
+            margin-top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        /* PANEL */
+        
+        .panel {
+            margin-top: 20px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .panel h2 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .search-box {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #111d55;
+            color: white;
+        }
+        
+        .add-btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.25s ease;
+        }
+        
+        .add-btn:hover {
+            background: var(--accent-hover);
+        }
+        
+        .add-btn i {
+            margin-right: 8px;
+        }
+        
+        .nivel-filtro {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .nivel-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .nivel-chip:hover {
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        
+        .nivel-chip.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+        }
+        
+        .nivel-chip .chip-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nivel-chip.active .chip-dot {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+        
+        .nivel-chip .chip-count {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        
+        .nivel-chip.active .chip-count {
+            background: rgba(255, 255, 255, 0.28);
+        }
+        
+        .light-theme .nivel-chip:hover {
+            background: #eef1f8;
+            color: var(--text-primary);
+        }
+        
+        .student-container {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+        
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        .student-table th {
+            background: #111d55;
+            color: var(--text-secondary);
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .student-table td {
+            padding: 12px;
+            border-bottom: 1px solid #1f337a;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .student-table tr:hover {
+            background: #111d55;
+        }
+        
+        .table-btn {
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: transform 0.25s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .edit-btn {
+            background: var(--border-color);
+            color: white;
+        }
+        
+        .delete-btn {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .delete-btn.hidden {
+            display: none;
+        }
+        
+        .table-btn:hover {
+            transform: scale(1.08);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        /* CONFIG SECTION */
+        
+        .config-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .config-section h3 {
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-size: 16px;
+        }
+        
+        .config-section label {
+            display: block;
+            margin-bottom: 6px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #111d55;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .save-config-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            font-size: 14px;
+        }
+        
+        .save-config-btn:hover {
+            background: var(--accent-hover);
+        }
+        /* FORMULARIO ESTUDIANTE */
+        
+        .form-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .form-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        
+        .form-content h2 {
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #111d55;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .form-actions button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.25s ease;
+            font-size: 14px;
+        }
+        
+        .btn-save {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background: var(--accent-hover);
+        }
+        
+        .btn-cancel {
+            background: #666;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #555;
+        }
+        /* FORMULARIO DE GESTIÓN DE ROLES */
+        
+        .roles-form-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .roles-form-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .roles-form-content h2 {
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+        
+        .roles-list {
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .role-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .role-info {
+            flex: 1;
+        }
+        
+        .role-info p {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+        
+        .role-info strong {
+            color: var(--text-secondary);
+        }
+        
+        .role-select {
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            background: #111d55;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .roles-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        /* MODAL QR */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+        
+        #codigoQR {
+            margin: 15px auto;
+            display: flex;
+            justify-content: center;
+        }
+        #codigoQR canvas {
+            width: 100%;
+            max-width: 330px;
+            height: auto;
+            border-radius: 16px;
+            filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+        }
+        .credencial-acciones {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0 5px;
+            width: 100%;
+        }
+        .credencial-cambiar-foto {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .credencial-cambiar-foto:hover {
+            color: var(--accent-color);
+        }
+        #codigoQR canvas.credencial-drop {
+            outline: 3px dashed var(--accent-color);
+            outline-offset: 6px;
+        }
+        .credencial-drop-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        /* MODAL ESCÁNER */
+        
+        .scanner-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .scanner-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            text-align: center;
+        }
+        
+        .scanner-container h2 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .scanner-video {
+            width: 100%;
+            max-width: 350px;
+            min-height: 260px;
+            border-radius: 10px;
+            margin: 15px auto;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            object-fit: cover;
+        }
+        
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 62%;
+            max-width: 220px;
+            aspect-ratio: 1;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+            border: 2px dashed rgba(74, 222, 128, 0.65);
+            border-radius: 12px;
+            box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.25);
+            animation: pulsoScan 1.8s ease-in-out infinite;
+        }
+        
+        @keyframes pulsoScan {
+            0%, 100% { box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.25), 0 0 0 0 rgba(74, 222, 128, 0.35); }
+            50% { box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.25), 0 0 0 7px rgba(74, 222, 128, 0); }
+        }
+        
+        .scanner-instruccion {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 4px 0 0;
+        }
+        
+        .scanner-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .scanner-actions button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.25s ease;
+            font-size: 14px;
+        }
+        
+        .btn-start-scanner {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .btn-start-scanner:hover {
+            background: #218838;
+        }
+        
+        .btn-stop-scanner {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-stop-scanner:hover {
+            background: #c82333;
+        }
+        
+        .btn-close-scanner {
+            background: #666;
+            color: white;
+        }
+        
+        .btn-close-scanner:hover {
+            background: #555;
+        }
+        
+        .scanner-result {
+            margin-top: 15px;
+            padding: 12px;
+            background: #111d55;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .scanner-result-ok {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+            font-weight: 600;
+        }
+
+        .scanner-result-error {
+            background: rgba(198, 40, 40, 0.18);
+            border: 1px solid rgba(198, 40, 40, 0.5);
+            color: #ff8a80;
+            font-weight: 600;
+        }
+
+        .btn-export-scanner {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-export-scanner:hover {
+            background: #0056b3;
+        }
+        /* INFORMACIÓN DEL ESTUDIANTE EN EL QR */
+        
+        .qr-info {
+            margin: 15px auto 0;
+            padding: 12px 15px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.7;
+            max-width: 320px;
+            color: var(--text-primary);
+        }
+        
+        .qr-info strong {
+            color: var(--text-secondary);
+        }
+        
+        .qr-estado {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            width: max-content;
+        }
+        
+        .qr-estado.generado {
+            background: rgba(16, 185, 129, 0.18);
+            color: #10b981;
+        }
+        
+        .qr-estado.pendiente {
+            background: rgba(148, 163, 184, 0.18);
+            color: #94a3b8;
+        }
+        
+        .tipo-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 4px;
+        }
+        
+        .tipo-badge.becado {
+            background: rgba(16, 185, 129, 0.18);
+            color: #10b981;
+        }
+        
+        .tipo-badge.paga {
+            background: rgba(245, 158, 11, 0.18);
+            color: #f59e0b;
+        }
+        /* LISTA DEL DÍA EN EL ESCÁNER */
+        
+        .scanner-list {
+            margin-top: 15px;
+            text-align: left;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        
+        .scanner-list h3 {
+            color: var(--accent-color);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .scanner-ganado {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .scanner-detectado {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #f59e0b;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .scanner-status {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #4ade80;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            z-index: 5;
+        }
+        
+        .scanner-lista-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: #111d55;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        
+        .scanner-lista-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+            margin-right: 10px;
+        }
+        
+        .scanner-lista-nombre {
+            color: var(--text-primary);
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .scanner-lista-seccion {
+            color: var(--text-secondary);
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .scanner-lista-tipo {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        
+        .scanner-lista-tipo.becado {
+            background: rgba(16, 185, 129, 0.18);
+            color: #10b981;
+        }
+        
+        .scanner-lista-tipo.paga {
+            background: rgba(245, 158, 11, 0.18);
+            color: #f59e0b;
+        }
+        
+        .scanner-lista-hora {
+            color: var(--text-secondary);
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        
+        .scanner-lista-pagado {
+            color: #10b981;
+            font-weight: 700;
+            font-size: 12px;
+            white-space: nowrap;
+            background: rgba(16, 185, 129, 0.15);
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+        
+        .scanner-lista-vacia {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-align: center;
+            font-style: italic;
+        }
+        /* INVITADOS EXTERNOS */
+        
+        .silla-buscar {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #111d55;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .invitado-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        
+        .invitado-delete {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger-color);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        .qr-share-btn {
+            padding: 9px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.2s ease, transform 0.15s ease;
+        }
+        .qr-share-btn:hover {
+            background: rgba(43, 103, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        /* LOADING SPINNER */
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        /* NOTIFICATION */
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            z-index: 3000;
+            display: none;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+            font-size: 13px;
+            max-width: 300px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+        /* MODAL TUTORIAL */
+        
+        .tutorial-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .tutorial-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .tutorial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tutorial-header h2 {
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+        
+        .tutorial-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .tutorial-close:hover {
+            color: var(--accent-color);
+        }
+        
+        .tutorial-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .tutorial-step-icon {
+            font-size: 20px;
+            color: var(--accent-color);
+            margin-right: 12px;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .tutorial-step-content h3 {
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        
+        .tutorial-step-content p {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 13px;
+        }
+        
+        .tutorial-step-content ul {
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-left: 18px;
+        }
+        
+        .tutorial-step-content li {
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .tutorial-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .tutorial-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.25s ease;
+            font-size: 13px;
+        }
+        
+        .tutorial-btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .tutorial-btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        
+        .tutorial-btn-secondary {
+            background: #666;
+            color: white;
+        }
+        
+        .tutorial-btn-secondary:hover {
+            background: #555;
+        }
+        /* TEMA CLARO */
+        
+        .light-theme {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #e9ecef;
+            --bg-tertiary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-tertiary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --accent-hover: #0056b3;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+        
+        .light-theme .header-logo,
+        .light-theme .logo,
+        .light-theme .sidebar-logo {
+            color: var(--accent-color);
+        }
+        
+        .light-theme .student-table th {
+            background: #e9ecef;
+            color: var(--text-secondary);
+        }
+        
+        .light-theme .student-table td {
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .light-theme .student-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .light-theme .config-input,
+        .light-theme .search-box,
+        .light-theme .form-group input,
+        .light-theme .form-group select,
+        .light-theme .role-select {
+            background: #ffffff;
+            border: 1px solid #ced4da;
+            color: var(--text-primary);
+        }
+        
+        .light-theme .menu-search {
+            background: #ffffff;
+            border: 1px solid #ced4da;
+            color: var(--text-primary);
+        }
+        
+        .light-theme .notification {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            color: var(--text-primary);
+        }
+        
+        .light-theme .card {
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light-theme .tutorial-content,
+        .light-theme .tutorial-step,
+        .light-theme .roles-form-content,
+        .light-theme .role-item {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+        }
+        
+        .light-theme .tutorial-step {
+            border-left: 4px solid var(--accent-color);
+        }
+        /* FOOTER */
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            padding: 8px 20px;
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            z-index: 1000;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .light-theme .footer {
+            color: var(--text-secondary);
+        }
+        /* ESTILOS PARA GRÁFICOS MODERNOS */
+        
+        .chart-container {
+            position: relative;
+            height: 180px;
+            width: 100%;
+        }
+        /* ESTILO PARA EL MENÚ DESPLEGABLE EN MÓVIL */
+        
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            z-index: 999;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .mobile-menu.show {
+            display: block;
+        }
+        
+        .mobile-menu button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            text-align: left;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mobile-menu button:hover {
+            background: var(--accent-hover);
+        }
+        /* RESPONSIVE */
+        
+        @media (max-width: 1200px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 15px;
+            }
+            .header-logo {
+                font-size: 20px;
+            }
+            .header-about,
+            .header-help {
+                font-size: 14px;
+            }
+            .header-user-info {
+                display: none;
+            }
+            .header-menu-toggle {
+                display: block;
+            }
+            .sidebar {
+                position: fixed;
+                top: 60px;
+                left: -100%;
+                width: var(--sidebar-width);
+                z-index: 1000;
+                transform: none;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .content {
+                padding: 15px;
+            }
+            .footer {
+                padding: 6px 15px;
+                font-size: 10px;
+            }
+            .tutorial-content {
+                width: 95%;
+                max-height: 85vh;
+            }
+            .student-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                width: 100%;
+                max-width: 100%;
+            }
+            .scanner-video {
+                width: 90%;
+            }
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            .menu button span {
+                display: none;
+            }
+            .menu button i {
+                margin: 0 auto;
+            }
+            .dropdown-content {
+                left: 0;
+                right: auto;
+                top: 100%;
+                margin-top: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-logo {
+                font-size: 18px;
+            }
+            .title {
+                font-size: 20px;
+            }
+            .card span {
+                font-size: 24px;
+            }
+            .form-content {
+                width: 95%;
+                padding: 20px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            .scanner-container {
+                width: 95%;
+                padding: 15px;
+            }
+            .scanner-video {
+                min-height: 180px;
+                max-height: 220px;
+            }
+            .roles-form-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+        
+        .sidebar-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+        /* Estilos para el perfil de usuario */
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.25s ease;
+        }
+        
+        .user-profile:hover {
+            background: var(--accent-hover);
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            width: 280px;
+            z-index: 10000;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .user-profile-dropdown.show {
+            display: block;
+        }
+        
+        .profile-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .profile-details h3 {
+            font-size: 16px;
+            margin: 0;
+        }
+        
+        .profile-details p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .profile-actions button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background 0.25s ease;
+        }
+        
+        .profile-actions button:hover {
+            opacity: 0.9;
+        }
+    </style>
+    </head>
+
+<body>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- HEADER CON LOGO, USUARIO, ACERCA DE Y AYUDA -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="header-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="header-logo" id="headerLogo">Comedor</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- Perfil de Usuario -->
+            <div class="user-profile" onclick="toggleUserProfile()" id="userProfile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle" style="font-size: 24px; color: var(--text-secondary);"></i>
+                </div>
+                <div class="user-info">
+                    <span id="userName" style="color: var(--text-primary); font-weight: bold; font-size: 14px;"></span>
+                    <span id="userRole" style="color: var(--text-secondary); font-size: 12px;"></span>
+                </div>
+                <i class="fas fa-chevron-down" style="color: var(--text-secondary); font-size: 12px;"></i>
+            </div>
+
+            <!-- Menú Desplegable del Perfil -->
+            <div class="user-profile-dropdown" id="userProfileDropdown">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle" style="font-size: 40px; color: var(--accent-color);"></i>
+                    </div>
+                    <div class="profile-details">
+                        <h3 id="profileName" style="color: var(--text-primary); margin-bottom: 5px;"></h3>
+                        <p id="profileRole" style="color: var(--text-secondary); margin-bottom: 5px;"></p>
+                        <p style="color: var(--text-secondary); font-size: 12px;">
+                            <strong>Último inicio de sesión:</strong> <span id="profileLastLogin"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button onclick="window.location.href='selector.html'" style="width: 100%; padding: 10px; border: none; background: var(--accent-color); color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 8px;">
+                    <i class="fas fa-exchange-alt"></i> <span id="profileCambiarSistema">Cambiar sistema</span>
+                </button>
+                    <button id="vincularGoogleBtn" onclick="vincularCuentaGoogle()" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 8px; display: none;">
+                    <i class="fab fa-google"></i> <span id="profileVincularGoogle">Vincular cuenta de Google</span>
+                </button>
+                    <button onclick="cerrarSesion()" style="width: 100%; padding: 10px; border: none; background: var(--danger-color); color: white; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+                </div>
+            </div>
+
+            <div class="header-help" onclick="mostrarTutorial()" id="headerHelp">
+                <i class="fas fa-question-circle"></i>
+                <span id="headerAyuda">Ayuda</span>
+            </div>
+            <div class="header-about" onclick="mostrarAcercaDe()">
+                <i class="fas fa-info-circle"></i>
+                <span id="headerAcercaDe">Acerca de</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVISO SIN CONEXIÓN -->
+    <div id="offlineBanner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #f59e0b; color: #111; padding: 11px 16px; text-align: center; font-weight: 600; font-size: 13px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.3);">
+        <i class="fas fa-wifi"></i> <span id="offlineBannerText">Sin conexión</span>
+    </div>
+
+    <!-- MENÚ MÓVIL -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button onclick="mostrarDashboard(); closeMobileMenu();" data-roles="admin profesor bibliotecario">
+            <i class="fas fa-chart-line"></i>
+            <span id="mobileDashboard">Dashboard</span>
+        </button>
+        <button onclick="mostrarEstudiantes(); closeMobileMenu();" data-roles="admin profesor">
+            <i class="fas fa-users"></i>
+            <span id="mobileEstudiantes">Estudiantes</span>
+        </button>
+        <button onclick="mostrarHistorial(); closeMobileMenu();" data-roles="admin profesor bibliotecario">
+            <i class="fas fa-calendar-check"></i>
+            <span id="mobileHistorial">Registro</span>
+        </button>
+        <button onclick="mostrarHistorialEstudiante(); closeMobileMenu();" data-roles="admin profesor">
+            <i class="fas fa-user-clock"></i>
+            <span id="mobileHistorialEstudiante">Historial Estudiante</span>
+        </button>
+        <button onclick="mostrarInvitados(); closeMobileMenu();" data-roles="admin profesor">
+            <i class="fas fa-user-plus"></i>
+            <span id="mobileInvitados">Invitados</span>
+        </button>
+        <button onclick="mostrarPrediccion(); closeMobileMenu();" data-roles="admin">
+            <i class="fas fa-brain"></i>
+            <span id="mobilePrediccion">IA Predicción</span>
+        </button>
+        <button onclick="mostrarMenu(); closeMobileMenu();" data-roles="admin profesor bibliotecario">
+            <i class="fas fa-utensils"></i>
+            <span id="mobileMenuPlan">Menú</span>
+        </button>
+        <button onclick="window.location.href='selector.html'; closeMobileMenu();">
+            <i class="fas fa-exchange-alt"></i>
+            <span id="mobileCambiarSistema">Cambiar sistema</span>
+        </button>
+        <button onclick="mostrarGestionRoles(); closeMobileMenu();" data-rol-admin>
+            <i class="fas fa-user-cog"></i>
+            <span id="mobileGestionRoles">Gestionar Roles</span>
+        </button>
+        <button onclick="toggleDropdownMobile(); closeMobileMenu();" data-roles="admin profesor">
+            <i class="fas fa-download"></i>
+            <span id="mobileExportar">Exportar</span>
+        </button>
+        <div class="dropdown-content" id="dropdownExportMobile" style="display: none; position: static; box-shadow: none; border: none; background: transparent; padding-left: 30px;">
+            <button onclick="exportarAExcel();" style="width: 100%; text-align: left; padding: 8px 0; background: none; border: none; color: var(--text-tertiary); cursor: pointer;">
+                <i class="fas fa-file-excel" style="color: #28a745; margin-right: 8px;"></i>
+                <span id="mobileExportExcel">Excel</span>
+            </button>
+            <button onclick="exportarAPDF();" style="width: 100%; text-align: left; padding: 8px 0; background: none; border: none; color: var(--text-tertiary); cursor: pointer;">
+                <i class="fas fa-file-pdf" style="color: #dc3545; margin-right: 8px;"></i>
+                <span id="mobileExportPDF">PDF</span>
+            </button>
+        </div>
+        <button onclick="toggleQRDropdownMobile(); closeMobileMenu();" data-roles="admin profesor bibliotecario">
+            <i class="fas fa-qrcode"></i>
+            <span id="mobileQR">QR</span>
+        </button>
+        <div class="dropdown-content" id="dropdownQRMobile" style="display: none; position: static; box-shadow: none; border: none; background: transparent; padding-left: 30px;">
+            <button onclick="mostrarQR();" style="width: 100%; text-align: left; padding: 8px 0; background: none; border: none; color: var(--text-tertiary); cursor: pointer;">
+                <i class="fas fa-plus" style="color: #28a745; margin-right: 8px;"></i>
+                <span id="mobileGenerarQR">Generar QR</span>
+            </button>
+            <button onclick="abrirScanner();" style="width: 100%; text-align: left; padding: 8px 0; background: none; border: none; color: var(--text-tertiary); cursor: pointer;">
+                <i class="fas fa-camera" style="color: #007bff; margin-right: 8px;"></i>
+                <span id="mobileEscanearQR">Escanear QR</span>
+            </button>
+        </div>
+        <button onclick="mostrarConfiguracion(); closeMobileMenu();" data-roles="admin">
+            <i class="fas fa-gear"></i>
+            <span id="mobileConfiguracion">Configuración</span>
+        </button>
+        <button onclick="cerrarSesion(); closeMobileMenu();">
+            <i class="fas fa-sign-out-alt"></i>
+            <span id="mobileCerrarSesion">Cerrar Sesión</span>
+        </button>
+    </div>
+
+    <!-- FOOTER CON VERSIÓN -->
+    <div class="footer" id="footerVersion">
+        <span id="versionText">Versión 1.8.0 | DocTipy © Bianka Fernanda Hernandez Araya D.</span>
+    </div>
+
+    <!-- MODAL TUTORIAL -->
+    <div class="tutorial-modal" id="tutorialModal">
+        <div class="tutorial-content">
+            <div class="tutorial-header">
+                <h2 id="tutorialTitle">Bienvenido a ComeID</h2>
+                <button class="tutorial-close" onclick="cerrarTutorial()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso1Titulo">Bienvenido a ComeID</h3>
+                    <p id="tutorialPaso1Texto">
+                        Este sistema te ayudará a gestionar el comedor de tu institución de manera eficiente y automatizada. A continuación, te explicamos cómo empezar.
+                    </p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso2Titulo">Dashboard - Panel de Control</h3>
+                    <p id="tutorialPaso2Texto">
+                        Aquí verás un resumen de:
+                    </p>
+                    <ul>
+                        <li><strong>Becados:</strong> Estudiantes con beca.</li>
+                        <li><strong>Pagan:</strong> Estudiantes que pagan por el servicio.</li>
+                        <li><strong>Total de estudiantes:</strong> Suma de todos los registrados.</li>
+                        <li><strong>Asistencias hoy:</strong> Estudiantes que han comido hoy.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso3Titulo">Gestiona Estudiantes</h3>
+                    <p id="tutorialPaso3Texto">
+                        En el menú <strong>"Estudiantes"</strong> podrás:
+                    </p>
+                    <ul>
+                        <li><strong>Agregar:</strong> Registrar nuevos estudiantes con su nombre, sección, cédula, nivel y tipo (becado o pagante).</li>
+                        <li><strong>Editar:</strong> Modificar la información de un estudiante existente.</li>
+                        <li><strong>Eliminar:</strong> Solo el administrador puede eliminar estudiantes.</li>
+                        <li><strong>Buscar:</strong> Filtrar estudiantes por nombre, sección, nivel o tipo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPasoRolesTitulo">Gestiona Roles de Usuario</h3>
+                    <p id="tutorialPasoRolesTexto">
+                        Usa el menú <strong>"Gestionar Roles"</strong> para asignar o cambiar roles a los usuarios (Admin, Profesor, Estudiante).
+                    </p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPasoNivelTitulo">Filtra por Nivel</h3>
+                    <p id="tutorialPasoNivelTexto">
+                        En el menú <strong>"Estudiantes"</strong> usa el filtro de nivel para ver a los estudiantes agrupados por su nivel (7mo a 12mo).
+                    </p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso4Titulo">Genera y Escanea Códigos QR</h3>
+                    <p id="tutorialPaso4Texto">
+                        Usa el menú <strong>"QR"</strong> para:
+                    </p>
+                    <ul>
+                        <li><strong>Generar QR:</strong> Crea un código QR único para cada estudiante (con su nombre, cédula, sección, nivel y tipo).</li>
+                        <li><strong>Escanear QR:</strong> Registra la asistencia del estudiante escaneando su código QR con la cámara de tu dispositivo.</li>
+                    </ul>
+                    <p style="margin-top: 8px; font-style: italic; color: var(--text-secondary);">
+                        <strong>Tip:</strong> Usa la cámara trasera de tu dispositivo para escanear códigos QR más fácilmente.
+                    </p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso5Titulo">Exporta Datos</h3>
+                    <p id="tutorialPaso5Texto">
+                        Desde el menú <strong>"Exportar"</strong> puedes descargar la lista de estudiantes en:
+                    </p>
+                    <ul>
+                        <li><strong>Excel:</strong> Para editar o analizar los datos en una hoja de cálculo.</li>
+                        <li><strong>PDF:</strong> Para imprimir o compartir un reporte profesional.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso6Titulo">Configura el Sistema</h3>
+                    <p id="tutorialPaso6Texto">
+                        En <strong>"Configuración"</strong> personaliza:
+                    </p>
+                    <ul>
+                        <li><strong>Nombre de la institución:</strong>...</li>
+                        <li><strong>Nombre del comedor:</strong> Ej: "Comedor Institucional".</li>
+                        <li><strong>Idioma:</strong> Español, Inglés, Portugués, Francés o Alemán.</li>
+                        <li><strong>Tema:</strong> Oscuro (recomendado) o Claro.</li>
+                        <li><strong>Horarios:</strong> Hora de apertura y cierre del comedor.</li>
+                        <li><strong>Precio:</strong> Costo para estudiantes que pagan.</li>
+                        <li><strong>Versión:</strong> Número de versión del sistema.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso7Titulo">Historial por Estudiante</h3>
+                    <p id="tutorialPaso7Texto"></p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso8Titulo">IA Predicción</h3>
+                    <p id="tutorialPaso8Texto"></p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso9Titulo">Modo sin conexión y Respaldos</h3>
+                    <p id="tutorialPaso9Texto"></p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="tutorial-step-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="tutorial-step-content">
+                    <h3 id="tutorialPaso10Titulo">Invitados externos</h3>
+                    <p id="tutorialPaso10Texto"></p>
+                </div>
+            </div>
+
+            <div class="tutorial-actions">
+                <button class="tutorial-btn tutorial-btn-secondary" onclick="cerrarTutorial(); localStorage.setItem('tutorialMostrado', 'true');" id="tutorialNoVolverAMostrarBtn">
+                    No volver a mostrar
+                </button>
+                <button class="tutorial-btn tutorial-btn-primary" onclick="cerrarTutorial()" id="tutorialEntendidoBtn">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <button id="toggleSidebar" class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="logo" id="sidebarLogo">
+                Comedor
+            </div>
+
+            <input type="text" id="menuSearch" class="menu-search" placeholder="Buscar función..." autocomplete="new-password" autocapitalize="off" spellcheck="false">
+
+            <div class="menu">
+                <h4 class="menu-title" id="menuGeneralTitle">General</h4>
+
+                <button class="active" onclick="mostrarDashboard()" data-roles="admin profesor bibliotecario">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="menuDashboard">Dashboard</span>
+                </button>
+
+                <button onclick="mostrarEstudiantes()" data-roles="admin profesor">
+                    <i class="fas fa-users"></i>
+                    <span id="menuEstudiantes">Estudiantes</span>
+                </button>
+
+                <button onclick="mostrarHistorial()" data-roles="admin profesor bibliotecario">
+                    <i class="fas fa-calendar-check"></i>
+                    <span id="menuHistorial">Registro</span>
+                </button>
+
+                <button onclick="mostrarHistorialEstudiante()" data-roles="admin profesor">
+                    <i class="fas fa-user-clock"></i>
+                    <span id="menuHistorialEstudiante">Historial Estudiante</span>
+                </button>
+
+                <button onclick="mostrarInvitados()" data-roles="admin profesor">
+                    <i class="fas fa-user-plus"></i>
+                    <span id="menuInvitados">Invitados</span>
+                </button>
+
+                <button onclick="mostrarPrediccion()" data-roles="admin">
+                    <i class="fas fa-brain"></i>
+                    <span id="menuPrediccion">IA Predicción</span>
+                </button>
+
+                <button onclick="mostrarMenu()" data-roles="admin profesor bibliotecario">
+                    <i class="fas fa-utensils"></i>
+                    <span id="menuMenu">Menú</span>
+                </button>
+
+                <button onclick="window.location.href='selector.html'">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span id="menuCambiarSistema">Cambiar sistema</span>
+                </button>
+
+                <button onclick="mostrarGestionRoles()" data-rol-admin>
+                    <i class="fas fa-user-cog"></i>
+                    <span id="menuGestionRoles">Gestionar Roles</span>
+                </button>
+
+                <!-- MENÚ EXPORTAR -->
+                <div class="dropdown" data-roles="admin profesor">
+                    <button class="dropdown-btn" onclick="toggleDropdown(event)">
+                        <i class="fas fa-download"></i>
+                        <span id="menuExportar">Exportar</span>
+                    </button>
+                    <div class="dropdown-content" id="dropdownExport">
+                        <button type="button" onclick="exportarAExcel()">
+                            <i class="fas fa-file-excel" style="color: #28a745;"></i> <span id="exportExcel">Excel</span>
+                        </button>
+                        <button type="button" onclick="exportarAPDF()">
+                            <i class="fas fa-file-pdf" style="color: #dc3545;"></i> <span id="exportPDF">PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BOTÓN UNIFICADO PARA QR -->
+                <div class="dropdown" data-roles="admin profesor bibliotecario">
+                    <button class="dropdown-btn" onclick="toggleQRDropdown(event)">
+                        <i class="fas fa-qrcode"></i>
+                        <span id="menuQR">QR</span>
+                    </button>
+                    <div class="dropdown-content" id="dropdownQR">
+                        <button type="button" onclick="mostrarQR()">
+                            <i class="fas fa-plus" style="color: #28a745;"></i> <span id="menuGenerarQR">Generar QR</span>
+                        </button>
+                        <button type="button" onclick="abrirScanner()">
+                            <i class="fas fa-camera" style="color: #007bff;"></i> <span id="menuEscanearQR">Escanear QR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <h4 class="menu-title" id="menuSistemaTitle">Sistema</h4>
+
+                <button onclick="mostrarConfiguracion()" data-roles="admin">
+                    <i class="fas fa-gear"></i>
+                    <span id="menuConfiguracion">Configuración</span>
+                </button>
+
+                <button onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span id="menuCerrarSesion">Cerrar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="panel" id="contenido"></div>
+        </div>
+    </div>
+
+    <!-- Formulario para agregar/editar estudiante -->
+    <div class="form-container" id="formEstudiante">
+        <div class="form-content">
+            <h2 id="formTitle">Agregar Estudiante</h2>
+            <div class="form-group">
+                <label for="nombre" id="formNombreLabel">Nombre:</label>
+                <input type="text" id="nombre" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+                <label for="seccion" id="formSeccionLabel">Sección:</label>
+                <input type="text" id="seccion" placeholder="Ej: 9-A">
+            </div>
+            <div class="form-group">
+                <label for="cedula" id="formCedulaLabel">Cédula:</label>
+                <input type="text" id="cedula" placeholder="Ej: 123456789">
+            </div>
+            <div class="form-group">
+                <label id="formCuentaTitulo" style="margin-bottom: 2px;">Cuenta del portal Integra ID Estudiantes</label>
+                <p id="formCorreoAyuda" style="margin: 0 0 8px; font-size: 12px; color: var(--text-secondary);">Opcional: si lo dejas vacío, el estudiante podrá registrarse por su cuenta desde el portal. En edición no se pueden cambiar.</p>
+                <label for="estudianteCorreo" id="formCorreoLabel">Correo (portal del estudiante):</label>
+                <input type="email" id="estudianteCorreo" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="form-group" id="formClaveGrupo">
+                <label for="estudianteClave" id="formClaveLabel">Contraseña (mínimo 6 caracteres):</label>
+                <input type="password" id="estudianteClave" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label for="nivel" id="formNivelLabel">Nivel:</label>
+                <select id="nivel">
+                    <option value="7mo">7mo</option>
+                    <option value="8vo">8vo</option>
+                    <option value="9no">9no</option>
+                    <option value="10mo">10mo</option>
+                    <option value="11mo">11mo</option>
+                    <option value="12mo">12mo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tipo" id="formTipoLabel">Tipo:</label>
+                <select id="tipo">
+                    <option value="Becado" id="formTipoBecado">Becado</option>
+                    <option value="Paga" id="formTipoPaga">Paga</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="formFotoLabel">Foto del estudiante:</label>
+                <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+                    <img id="fotoPreview" src="" alt="" style="display: none; width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-color);">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn-cancel" onclick="document.getElementById('fotoInput').click()" style="background: var(--accent-color); color: white; border: none;">
+                            <i class="fas fa-camera"></i> <span id="formFotoSubir">Subir foto</span>
+                        </button>
+                        <input type="file" id="fotoInput" accept="image/*" style="display: none;" onchange="procesarFotoSeleccionada(this.files[0])">
+                        <button type="button" class="btn-cancel" onclick="quitarFoto()" id="formFotoQuitarBtn" style="display: none;">
+                            <i class="fas fa-trash-alt"></i> <span id="formFotoQuitar">Quitar foto</span>
+                        </button>
+                    </div>
+                    <input type="text" id="fotoUrl" placeholder="" style="width: 100%; padding: 10px; border-radius: 8px; background: #111d55; border: 1px solid var(--border-color); color: white; font-size: 13px; box-sizing: border-box;" oninput="fotoDesdeUrl()">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="cerrarFormulario()" id="formCancelarBtn">Cancelar</button>
+                <button class="btn-save" onclick="guardarEstudiante()" id="formGuardarBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para gestionar roles de usuarios -->
+    <div class="roles-form-container" id="rolesForm">
+        <div class="roles-form-content">
+            <h2 id="rolesFormTitle">Gestionar Roles de Usuario</h2>
+            <div class="roles-list" id="rolesList">
+                <!-- Los usuarios se cargarán aquí dinámicamente -->
+            </div>
+            <div class="roles-actions">
+                <button class="btn-cancel" onclick="cerrarRolesForm()" id="rolesCancelarBtn">Cancelar</button>
+                <button class="btn-save" onclick="guardarRoles()" id="rolesGuardarBtn">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para QR -->
+    <div class="modal" id="modalQR">
+        <div class="modal-content" style="max-height: calc(100vh - 40px); overflow-y: auto;">
+            <h2 id="modalQRTitle">Generar QR</h2>
+            <input type="text" id="cedulaQR" placeholder="Ingrese cédula del estudiante" style="padding: 12px; border-radius: 10px; background: #111d55; border: none; color: white; width: 80%; margin-bottom: 15px; font-size: 14px;">
+            <button onclick="generarQR()" style="padding: 12px 18px; background: var(--accent-color); border: none; border-radius: 8px; color: white; cursor: pointer; margin-bottom: 15px; font-size: 14px;" id="modalQRGenerarBtn">
+                <i class="fas fa-qrcode"></i> <span id="modalQRGenerarText">Generar QR</span>
+            </button>
+            <div id="codigoQR"></div>
+            <input type="file" id="cambioFotoInput" accept="image/*" style="display: none;" onchange="cambiarFotoCredencial()">
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="cerrarQR()" id="modalQRCerrarBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Escáner de QR -->
+    <div class="scanner-modal" id="scannerModal">
+        <div class="scanner-container">
+            <h2 id="scannerTitle">Escanear Código QR</h2>
+            <div style="position: relative;">
+                <video id="scannerVideo" class="scanner-video" playsinline muted></video>
+                <div class="scanner-frame" id="scannerFrame" style="display: none;"></div>
+                <div id="scannerStatus" class="scanner-status" style="display: none;">Escaneando...</div>
+                <div id="scannerResult" class="scanner-result" style="display: none;"></div>
+            </div>
+            <p class="scanner-instruccion" id="scannerInstruccion">Apunta el código QR hacia la cámara.</p>
+            <div class="scanner-list" id="scannerLista">
+                <h3 id="scannerListaTitle">Lista del Día</h3>
+                <div class="scanner-ganado" id="scannerListaGanado">Ganado hoy: ₡0</div>
+                <div id="scannerListaContenido">
+                    <p class="scanner-lista-vacia" id="scannerListaCargando">Cargando...</p>
+                </div>
+            </div>
+            <div class="scanner-actions">
+                <button class="btn-start-scanner" onclick="solicitarPermisoCamara()" id="startScannerBtn">
+                    <i class="fas fa-play"></i> <span id="scannerIniciarBtn">Iniciar Escáner</span>
+                </button>
+                <button class="btn-stop-scanner" onclick="detenerScanner()" id="stopScannerBtn" style="display: none;">
+                    <i class="fas fa-stop"></i> <span id="scannerDetenerBtn">Detener</span>
+                </button>
+                <button class="btn-export-scanner" onclick="exportarListaDelDiaExcel()" title="Excel">
+                    <i class="fas fa-file-excel"></i> <span>Excel</span>
+                </button>
+                <button class="btn-export-scanner" onclick="exportarListaDelDiaPDF()" title="PDF">
+                    <i class="fas fa-file-pdf"></i> <span>PDF</span>
+                </button>
+                <button class="btn-export-scanner" onclick="exportarListaDelDiaCSV()" title="CSV">
+                    <i class="fas fa-download"></i> <span>CSV</span>
+                </button>
+                <button class="btn-close-scanner" onclick="cerrarScanner()" id="scannerCerrarBtn">
+                    <i class="fas fa-times"></i> <span id="scannerCerrarText">Cerrar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="js/globales.js"></script>
+    <script src="js/traducciones.js"></script>
+    <script src="js/utilidades.js"></script>
+    <script src="js/autenticacion.js"></script>
+    <script src="js/roles.js"></script>
+    <script src="js/estudiantes.js"></script>
+    <script src="js/escaneo.js"></script>
+    <script src="js/invitados.js"></script>
+    <script src="js/asistencia.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/gemini-config.js"></script>
+    <script src="js/ia.js"></script>
+<script src="js/historial-estudiante.js"></script>
+<script src="js/configuracion.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/principal.js"></script>
+    
+</body>
+
+</html>

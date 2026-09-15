@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra ID Estudiantes - Crear cuenta</title>
+    <meta name="theme-color" content="#2b67ff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Integra ID Est.">
+    <link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+
+    <div class="login-card">
+        <img src="assets/logo.png" class="login-logo-img" alt="Integra ID">
+        <div class="login-brand">Integra ID <span class="brand-acc">Estudiantes</span></div>
+        <p class="login-subtitle">Crea tu cuenta · Portal del estudiante · CTP de Liberia</p>
+
+        <div class="form-group">
+            <label for="regCedula">Cédula</label>
+            <input type="text" id="regCedula" placeholder="Ej: 123456789" inputmode="numeric">
+        </div>
+        <div class="form-group">
+            <label for="regNombre">Nombre completo (tal como está en Integra ID)</label>
+            <input type="text" id="regNombre" placeholder="Ej: Ana María Pérez" autocomplete="name">
+        </div>
+        <div class="form-group">
+            <label for="regCorreo">Correo electrónico</label>
+            <input type="email" id="regCorreo" placeholder="tu.correo@ctpliberia.ed.cr" autocomplete="email">
+        </div>
+        <div class="form-group">
+            <label for="regClave">Contraseña (mínimo 6 caracteres)</label>
+            <div class="pass-input">
+                <input type="password" id="regClave" placeholder="••••••••" autocomplete="new-password">
+                <button type="button" class="pass-toggle" onclick="mostrarOcultarClave('regClave', this)" tabindex="-1" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="regClave2">Confirmar contraseña</label>
+            <div class="pass-input">
+                <input type="password" id="regClave2" placeholder="••••••••" autocomplete="new-password">
+                <button type="button" class="pass-toggle" onclick="mostrarOcultarClave('regClave2', this)" tabindex="-1" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
+            </div>
+        </div>
+
+        <button class="login-btn" id="btnRegistrar" onclick="registrarEstudiante()">
+            <i class="fa-solid fa-user-plus"></i> Crear mi cuenta
+        </button>
+
+        <p style="text-align:center; margin-top:14px; font-size:13px; color:var(--text-secondary);">
+            ¿Ya tienes cuenta?
+            <a href="index.html" class="link-btn" style="font-size:13px;">Inicia sesión</a>
+        </p>
+
+        <div id="registroError" class="login-error"></div>
+
+        <div class="login-info">
+            <i class="fa-solid fa-shield-halved"></i> Solo podrás ver tu propia información. Debes estar registrado en
+            el sistema Integra ID del CTP de Liberia.
+        </div>
+    </div>
+
+    <div class="loading" id="loading"><div class="spinner"></div></div>
+
+    <div class="footer">Integra ID | CTP de Liberia</div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/registro.js"></script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("./sw.js").catch(() => {});
+        }
+        // Si ya hay una sesión de estudiante activa, ir directo al portal
+firebase.auth().onAuthStateChanged(user => {
+        if (!user) return;
+        if (window.registroEnProceso) return;
+            db.collection("usuarios").doc(user.uid).get().then(doc => {
+                if (doc.exists && String(doc.data().rol || "").toLowerCase() === "estudiante") {
+                    window.location.href = "dashboard.html";
+                } else {
+                    firebase.auth().signOut().catch(() => {});
+                }
+            }).catch(() => {});
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") registrarEstudiante();
+        });
+
+        function mostrarOcultarClave(id, btn) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            const mostrar = input.type === "password";
+            input.type = mostrar ? "text" : "password";
+            const icon = btn.querySelector("i");
+            if (icon) icon.className = mostrar ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+            btn.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+        }
+    </script>
+</body>
+
+</html>

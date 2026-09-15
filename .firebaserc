@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "comeid-670b9"
+  },
+  "targets": {
+    "comeid-670b9": {
+      "hosting": {
+        "admin": [
+          "comeid-670b9"
+        ],
+        "estudiantes": [
+          "comeid-estudiantes"
+        ]
+      }
+    }
+  }
+}

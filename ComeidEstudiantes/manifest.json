@@ -1,0 +1,53 @@
+{
+  "id": "./portal-estudiantes",
+  "name": "Integra ID Estudiantes",
+  "short_name": "Integra ID Est.",
+  "description": "Portal personal de estudiantes del CTP de Liberia: comedor, biblioteca, QR y notificaciones.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#050b2b",
+  "theme_color": "#2b67ff",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mi comedor",
+      "short_name": "Comedor",
+      "description": "Ver mi resumen del comedor",
+      "url": "./comedor.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi biblioteca",
+      "short_name": "Biblioteca",
+      "description": "Ver mis préstamos y reservas",
+      "url": "./biblioteca.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi código QR",
+      "short_name": "QR",
+      "description": "Mi credencial estudiantil",
+      "url": "./qr.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

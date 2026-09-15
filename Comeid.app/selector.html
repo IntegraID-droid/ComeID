@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra ID - Elegir sistema</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #050b2b;
+            --bg-card: #0c1748;
+            --bg-tertiary: #081238;
+            --text-primary: #e0e0e0;
+            --text-secondary: #8cbfff;
+            --border-color: #165bd3;
+            --accent-color: #2b67ff;
+            --accent-hover: #17326f;
+            --danger-color: #c62828;
+        }
+
+        body.light-theme {
+            --bg-primary: #f4f6fb;
+            --bg-card: #ffffff;
+            --bg-tertiary: #eef1f8;
+            --text-primary: #1c2333;
+            --text-secondary: #5a6b8c;
+            --border-color: #d4dbf0;
+            --accent-color: #2b67ff;
+            --accent-hover: #1d4ed8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .selector-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 520px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.15);
+        }
+
+        .selector-logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        .selector-logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .selector-card h2 {
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+
+        .selector-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .selector-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .selector-user i {
+            color: var(--accent-color);
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .selector-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 26px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+        }
+
+        .selector-option:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-color);
+        }
+
+        .selector-option i {
+            font-size: 42px;
+            color: var(--accent-color);
+        }
+
+        .selector-option .opt-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .selector-option .opt-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .selector-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+        }
+
+        .link-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .link-btn.danger:hover {
+            color: #ff8a80;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .selector-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="selector-card">
+        <img src="logo.png" class="selector-logo-img" alt="Integra ID" onerror="this.style.display='none'">
+        <div class="selector-logo-text">Integra ID</div>
+        <h2 id="selTitle">Elige el sistema</h2>
+        <p class="selector-subtitle" id="selSubtitle">Selecciona a dónde quieres ingresar</p>
+
+        <div class="selector-user" id="selUser">
+            <i class="fas fa-user-circle"></i> <span id="selUserName">Cargando...</span>
+        </div>
+
+        <div class="selector-grid">
+            <div class="selector-option" onclick="irA('index.html')">
+                <i class="fas fa-utensils"></i>
+                <span class="opt-title" id="selComedorTitle">Comedor</span>
+                <span class="opt-desc" id="selComedorDesc">Gestión de estudiantes, asistencias y menú</span>
+            </div>
+            <div class="selector-option" onclick="irA('biblioteca.html')">
+                <i class="fas fa-book-open"></i>
+                <span class="opt-title" id="selBibliotecaTitle">BiblioGest</span>
+                <span class="opt-desc" id="selBibliotecaDesc">Catálogo, préstamos y devoluciones</span>
+            </div>
+        </div>
+
+        <div class="selector-actions">
+            <button class="link-btn" onclick="cerrarSesion()">
+                <i class="fas fa-sign-out-alt"></i> <span id="selCerrarSesion">Cerrar sesión</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="footer">Integra ID | Comedor y Biblioteca</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP6Jjjn4H601ecoIw0oEVdI2gsqmnhYac",
+            authDomain: "comeid-670b9.firebaseapp.com",
+            projectId: "comeid-670b9",
+            storageBucket: "comeid-670b9.firebasestorage.app",
+            messagingSenderId: "908625018259",
+            appId: "1:908625018259:web:401295fd3fb2ed06b67c66",
+            measurementId: "G-0RWYEVYDRL"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Aplicar tema compartido (claro/oscuro) desde localStorage
+        try {
+            const cfg = JSON.parse(localStorage.getItem("configuracionComeID") || "null");
+            if (cfg && cfg.tema === "Claro") document.body.classList.add("light-theme");
+        } catch (e) { console.warn("No se pudo aplicar el tema:", e); }
+
+        function mostrarLoading() {
+            document.getElementById("loading").style.display = "block";
+        }
+
+        function ocultarLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function irA(destino) {
+            mostrarLoading();
+            window.location.href = destino;
+        }
+
+        function cerrarSesion() {
+            mostrarLoading();
+            firebase.auth().signOut().then(() => {
+                window.location.href = "login.html";
+            }).catch(() => {
+                ocultarLoading();
+                window.location.href = "login.html";
+            });
+        }
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+            // Solo gestores (admin, profesor, bibliotecario) pueden usar el panel.
+            db.collection("usuarios").doc(user.uid).get().then((doc) => {
+                const rol = doc.exists ? String(doc.data().rol || "").toLowerCase() : "";
+                if (rol !== "admin" && rol !== "profesor" && rol !== "bibliotecario") {
+                    firebase.auth().signOut().then(() => {
+                        window.location.href = "https://comeid-estudiantes.web.app";
+                    });
+                    return;
+                }
+                const nombreEl = document.getElementById("selUserName");
+                nombreEl.textContent = user.displayName || user.email || "Usuario";
+                ocultarLoading();
+            }).catch(() => {
+                firebase.auth().signOut().then(() => {
+                    window.location.href = "https://comeid-estudiantes.web.app";
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,229 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // =============================================
+    // FUNCIONES AUXILIARES
+    // Los gestores (admin/profesor/bibliotecario) conservan
+    // acceso total como en el sistema ComeID. Los estudiantes
+    // solo pueden leer SU información.
+    // El vínculo usuario <-> estudiante se guarda en
+    // usuarios/{uid}.estudiantesId (creado al matricular).
+    // =============================================
+    function esGestor() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ["admin", "profesor", "bibliotecario"];
+    }
+    function esAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == "admin";
+    }
+    function esEstudiante() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == "estudiante";
+    }
+    // ID del registro del estudiante en la colección "estudiantes"
+    function estudiantesIdUsuario() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.estudiantesId;
+    }
+    function esMiCedula(cedula) {
+      return esEstudiante() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cedula == cedula;
+    }
+    function cedulaUsuario() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cedula;
+    }
+    function esMiUid(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // ---------------------------------------------
+    // ESTUDIANTES: gestores leen/escriben todo;
+    // cada estudiante lee su documento (por uid o por
+    // cédula durante el auto-registro) y solo puede
+    // escribirle los campos uid/correo al vincularse.
+    // ---------------------------------------------
+    match /estudiantes/{estudiante} {
+      allow read: if esGestor() ||
+        (esEstudiante() &&
+         (resource.data.uid == request.auth.uid ||
+          resource.data.cedula == cedulaUsuario()));
+      allow create: if esAdmin();
+      allow update: if esAdmin() ||
+        (esEstudiante() &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(["uid", "correo"]) &&
+         resource.data.cedula == cedulaUsuario() &&
+         (resource.data.uid == null || resource.data.uid == request.auth.uid) &&
+         // Solo se admite el correo verificado por Firebase del propio usuario,
+         // para que nadie pueda reclamar un registro con un correo ajeno.
+         request.resource.data.correo == request.auth.token.email);
+      allow delete: if esAdmin();
+    }
+
+    // ---------------------------------------------
+    // USUARIOS: gestores leen todos; cada usuario
+    // lee y actualiza su propio perfil.
+    // ---------------------------------------------
+    match /usuarios/{usuario} {
+      allow read: if request.auth != null &&
+        (esGestor() || request.auth.uid == usuario);
+      allow create: if request.auth != null &&
+        (request.auth.uid == usuario || esGestor());
+      allow update: if request.auth != null &&
+        (esGestor() || (request.auth.uid == usuario &&
+        resource.data.diff(request.resource.data).affectedKeys().hasOnly(["nombre", "correo", "estudiantesId"]) &&
+        // El estudiante vincula su estudiantesId una sola vez: solo puede
+        // pasarlo de vacío a un valor, o dejarlo igual. No puede re-apuntarlo
+        // a otra persona para leer préstamos/avisos ajenos.
+        (resource.data.estudiantesId == request.resource.data.estudiantesId ||
+         resource.data.estudiantesId == null ||
+         resource.data.estudiantesId == "")));
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------
+    // ASISTENCIAS (comedor): gestores gestionan;
+    // el estudiante solo lee sus propias asistencias.
+    // ---------------------------------------------
+    match /asistencias/{asistencia} {
+      allow read: if esGestor() || esMiCedula(resource.data.cedula);
+      allow create: if esGestor();
+      allow update, delete: if esAdmin();
+    }
+
+    // ---------------------------------------------
+    // COMENFUERA (marcas diarias) y NOTAS: solo gestores.
+    // ---------------------------------------------
+    match /comenfuera/{dia} {
+      allow read, create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // INVITADOS EXTERNOS (lista manual del comedor):
+    // solo gestores.
+    // ---------------------------------------------
+    match /invitados/{invitado} {
+      allow read, create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // INVENTARIO del comedor (preparados / sobrantes):
+    // solo gestores.
+    // ---------------------------------------------
+    match /inventario/{fecha} {
+      allow read, create, update, delete: if esGestor();
+    }
+
+    match /notas/{nota} {
+      allow read, create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // LIBROS: lectura autenticada; gestión solo gestores.
+    // ---------------------------------------------
+    match /libros/{libro} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // PRÉSTAMOS: el estudiante solo lee los suyos
+    // (prestamistaId == su id). La gestión es de gestores.
+    // ---------------------------------------------
+    match /prestamos/{prestamo} {
+      allow read: if esGestor() || (esEstudiante() && resource.data.prestamistaId == estudiantesIdUsuario());
+      allow create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // SOCIOS DE LA BIBLIOTECA (bibliotecaEstudiantes):
+    // lista propia de la biblioteca (estudiantes que la usan
+    // aunque no estén en el comedor). Gestión exclusiva
+    // de gestores; los estudiantes no la ven.
+    // ---------------------------------------------
+    match /bibliotecaEstudiantes/{socio} {
+      allow read, create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // CONFIGURACIÓN (comedor, biblioteca y menú):
+    // lectura autenticada, escritura solo gestores.
+    // ---------------------------------------------
+    match /configuracion/{doc} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // RESERVAS: cada usuario lee y cancela las suyas.
+    // ---------------------------------------------
+    match /reservas/{reserva} {
+      allow read: if esGestor() || esMiUid(resource.data.usuarioId);
+      allow create: if esGestor() ||
+        (request.auth != null && request.resource.data.usuarioId == request.auth.uid);
+      allow update: if esGestor() ||
+        (request.auth != null && resource.data.usuarioId == request.auth.uid &&
+         request.resource.data.estado == "cancelada");
+      allow delete: if esGestor();
+    }
+
+    // ---------------------------------------------
+    // VALORACIONES y FAVORITOS: cada usuario gestiona los suyos.
+    // ---------------------------------------------
+    match /valoraciones/{valoracion} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null &&
+        request.resource.data.usuarioId == request.auth.uid;
+    }
+
+    match /favoritos/{favorito} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null &&
+        request.resource.data.usuarioId == request.auth.uid;
+    }
+
+    // ---------------------------------------------
+    // ACTIVIDAD: registro de gestores.
+    // ---------------------------------------------
+    match /actividad/{entrada} {
+      allow read: if esGestor();
+      allow create: if esGestor();
+      allow update, delete: if esAdmin();
+    }
+
+    // ---------------------------------------------
+    // NOTIFICACIONES: cada usuario lee y marca las suyas
+    // (uid, id de su registro de estudiante o avisos generales).
+    // ---------------------------------------------
+    match /notificaciones/{notificacion} {
+      allow read: if request.auth != null &&
+        (resource.data.para == request.auth.uid ||
+         resource.data.para == "todos" ||
+         esGestor() ||
+         resource.data.para == estudiantesIdUsuario() ||
+         (exists(/databases/$(database)/documents/estudiantes/$(resource.data.para)) &&
+          get(/databases/$(database)/documents/estudiantes/$(resource.data.para)).data.nombre ==
+          get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.nombre));
+      allow update: if esGestor() ||
+        (request.auth != null &&
+         (resource.data.para == request.auth.uid ||
+          resource.data.para == "todos" ||
+          resource.data.para == estudiantesIdUsuario() ||
+          (exists(/databases/$(database)/documents/estudiantes/$(resource.data.para)) &&
+           get(/databases/$(database)/documents/estudiantes/$(resource.data.para)).data.nombre ==
+           get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.nombre)) &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(["leida"]) &&
+         request.resource.data.leida == true);
+      allow create: if request.auth != null &&
+        (request.resource.data.para == request.auth.uid || esGestor());
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------
+    // RECOMENDACIONES (predicción): lectura autenticada,
+    // escritura solo del servicio (Firebase Admin).
+    // ---------------------------------------------
+    match /recomendaciones/{recomendacion} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

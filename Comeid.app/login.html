@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra ID - Iniciar sesión</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #050b2b;
+            --bg-card: #0c1748;
+            --bg-tertiary: #081238;
+            --text-primary: #e0e0e0;
+            --text-secondary: #8cbfff;
+            --border-color: #165bd3;
+            --accent-color: #2b67ff;
+            --accent-hover: #17326f;
+            --danger-color: #c62828;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.15);
+        }
+
+        .login-logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        .login-logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .login-card h2 {
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #111d55;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: 2px solid var(--accent-color);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 8px;
+            transition: background 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 18px 0 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .google-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .login-error {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(198, 40, 40, 0.15);
+            border: 1px solid var(--danger-color);
+            border-radius: 8px;
+            color: #ff8a80;
+            font-size: 13px;
+        }
+
+        .login-switch {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+            color: #6ea0ff;
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-card">
+        <img src="logo.png" class="login-logo-img" alt="Integra ID" onerror="this.style.display='none'">
+        <div class="login-logo-text">Integra ID</div>
+        <h2 id="authTitle">Iniciar sesión</h2>
+        <p class="login-subtitle" id="authSubtitle">Accede a Comedor y Biblioteca</p>
+
+        <!-- FORMULARIO DE INICIO DE SESIÓN -->
+        <div id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Correo electrónico</label>
+                <input type="email" id="loginEmail" placeholder="correo@institucion.edu" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button class="login-btn" onclick="iniciarSesion()" id="loginButton">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </button>
+
+            <div class="divider"><span>o</span></div>
+
+            <button class="google-btn" onclick="iniciarSesionGoogle()">
+                <i class="fab fa-google"></i> Continuar con Google
+            </button>
+
+            <div class="login-switch">
+                <span>¿No tenés cuenta?</span>
+                <button class="link-btn" onclick="mostrarRegistro()">Registrate</button>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <button class="link-btn" onclick="mostrarRecuperar()" style="font-size: 12px;">¿Olvidaste tu contraseña?</button>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE RECUPERACIÓN -->
+        <div id="recuperarForm" style="display: none;">
+            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 15px;">Escribe tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+            <div class="form-group">
+                <label for="recuperarEmail">Correo electrónico</label>
+                <input type="email" id="recuperarEmail" placeholder="correo@institucion.edu" autocomplete="email">
+            </div>
+
+            <button class="login-btn" onclick="recuperarContrasena()" id="recuperarButton">
+                <i class="fas fa-paper-plane"></i> Enviar enlace
+            </button>
+
+            <div class="login-switch">
+                <button class="link-btn" onclick="mostrarLogin()">Volver al inicio de sesión</button>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE REGISTRO -->
+        <div id="registroForm" style="display: none;">
+            <div class="form-group">
+                <label for="regNombre">Nombre completo</label>
+                <input type="text" id="regNombre" placeholder="Tu nombre">
+            </div>
+            <div class="form-group">
+                <label for="regCedula">Cédula</label>
+                <input type="text" id="regCedula" placeholder="Número de cédula">
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Correo electrónico</label>
+                <input type="email" id="regEmail" placeholder="correo@institucion.edu" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Contraseña</label>
+                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+            </div>
+
+            <button class="login-btn" onclick="registrarUsuario()" id="regButton">
+                <i class="fas fa-user-plus"></i> Crear cuenta
+            </button>
+
+            <div class="login-switch">
+                <span>¿Ya tenés cuenta?</span>
+                <button class="link-btn" onclick="mostrarLogin()">Iniciar sesión</button>
+            </div>
+        </div>
+
+        <div id="loginError" class="login-error" style="display: none;"></div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="footer">Integra ID | Comedor y Biblioteca | Desarrollado por Bianka Fernanda Hernandez Araya</div>
+
+    <script>
+        // =============================================
+        // CONFIGURACIÓN DE FIREBASE
+        // =============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP6Jjjn4H601ecoIw0oEVdI2gsqmnhYac",
+            authDomain: "comeid-670b9.firebaseapp.com",
+            projectId: "comeid-670b9",
+            storageBucket: "comeid-670b9.firebasestorage.app",
+            messagingSenderId: "908625018259",
+            appId: "1:908625018259:web:401295fd3fb2ed06b67c66",
+            measurementId: "G-0RWYEVYDRL"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // El acceso al panel es solo para gestores (admin, profesor, bibliotecario).
+        // Los estudiantes se redirigen al portal estudiantil.
+        // Si es una cuenta de Google sin perfil, se intenta vincular por correo
+        // con la Cloud Function "vincularCuentaGoogle" antes de decidir.
+        function redirigirSegunRol() {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+            const esGoogle = user.providerData && user.providerData.some(p => p.providerId === "google.com");
+            return db.collection("usuarios").doc(user.uid).get().then(async doc => {
+                let rol = doc.exists ? String(doc.data().rol || "").toLowerCase() : "";
+                if (!doc.exists && esGoogle) {
+                    try {
+                        await firebase.functions().httpsCallable("vincularCuentaGoogle")({ correo: user.email });
+                        const docVinculado = await db.collection("usuarios").doc(user.uid).get();
+                        rol = docVinculado.exists ? String(docVinculado.data().rol || "").toLowerCase() : "";
+                    } catch (error) {
+                        console.error("Error al vincular la cuenta de Google: ", error);
+                        ocultarLoading();
+                        mostrarError("No se pudo vincular tu cuenta de Google. Inténtalo de nuevo.");
+                        return;
+                    }
+                }
+                if (rol === "admin" || rol === "profesor" || rol === "bibliotecario") {
+                    window.location.href = "selector.html";
+                } else {
+                    return firebase.auth().signOut().then(() => {
+                        window.location.href = "https://comeid-estudiantes.web.app";
+                    });
+                }
+            }).catch(error => {
+                console.error("Error al verificar el rol: ", error);
+                ocultarLoading();
+                mostrarError("No se pudo verificar tu cuenta. Inténtalo de nuevo.");
+            });
+        }
+
+        // Si ya hay una sesión activa, verificar el rol y redirigir
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                redirigirSegunRol();
+            }
+        });
+
+        function mostrarLoading() {
+            document.getElementById("loading").style.display = "flex";
+        }
+
+        function ocultarLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function mostrarError(mensaje) {
+            const errorDiv = document.getElementById("loginError");
+            errorDiv.style.borderColor = "var(--danger-color)";
+            errorDiv.style.color = "#ff8a80";
+            errorDiv.style.background = "rgba(198, 40, 40, 0.15)";
+            errorDiv.textContent = mensaje;
+            errorDiv.style.display = "block";
+        }
+
+        function ocultarError() {
+            document.getElementById("loginError").style.display = "none";
+        }
+
+        function mensajeDeError(error) {
+            switch (error.code) {
+                case "auth/user-not-found":
+                    return "No existe una cuenta con este correo electrónico.";
+                case "auth/wrong-password":
+                case "auth/invalid-credential":
+                case "auth/invalid-login-credentials":
+                    return "Correo o contraseña incorrectos.";
+                case "auth/invalid-email":
+                    return "Correo electrónico inválido.";
+                case "auth/user-disabled":
+                    return "Esta cuenta ha sido deshabilitada.";
+                case "auth/too-many-requests":
+                    return "Demasiados intentos fallidos. Inténtalo más tarde.";
+                case "auth/operation-not-allowed":
+                    return "Este método de inicio de sesión no está habilitado en Firebase.";
+                case "auth/popup-closed-by-user":
+                    return "Se cerró la ventana de Google sin completar el inicio de sesión.";
+                case "auth/popup-blocked":
+                    return "El navegador bloqueó la ventana de Google. Te redirigiremos automáticamente.";
+                case "auth/unauthorized-domain":
+                    return "El dominio de esta página no está autorizado para Google. Agrégalo en Firebase → Authentication → Settings → Authorized domains.";
+                case "auth/network-request-failed":
+                    return "Problema de conexión. Revisa tu internet e inténtalo de nuevo.";
+                case "auth/operation-not-supported-in-this-environment":
+                    return "Debes usar la app por HTTP/HTTPS (desplegada o localhost), no abrir el archivo directamente desde el disco.";
+                case "auth/email-already-in-use":
+                    return "Ya existe una cuenta con este correo electrónico.";
+                case "auth/weak-password":
+                    return "La contraseña debe tener al menos 6 caracteres.";
+                case "auth/missing-password":
+                    return "Ingrese una contraseña.";
+                default:
+                    return error.message;
+            }
+        }
+
+        function iniciarSesion() {
+            ocultarError();
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            if (!email || !password) {
+                mostrarError("Complete todos los campos.");
+                return;
+            }
+
+            mostrarLoading();
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    redirigirSegunRol();
+                })
+                .catch(error => {
+                    ocultarLoading();
+                    mostrarError(mensajeDeError(error));
+                    console.error("Error al iniciar sesión: ", error);
+                });
+        }
+
+        function mostrarRegistro() {
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("registroForm").style.display = "block";
+            document.getElementById("authTitle").textContent = "Crear cuenta";
+            document.getElementById("authSubtitle").textContent = "Registrate para acceder al sistema";
+            ocultarError();
+        }
+
+        function mostrarLogin() {
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("registroForm").style.display = "none";
+            document.getElementById("recuperarForm").style.display = "none";
+            document.getElementById("authTitle").textContent = "Iniciar sesión";
+            document.getElementById("authSubtitle").textContent = "Accede a Comedor y Biblioteca";
+            ocultarError();
+        }
+
+        function mostrarRecuperar() {
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("registroForm").style.display = "none";
+            document.getElementById("recuperarForm").style.display = "block";
+            document.getElementById("authTitle").textContent = "Recuperar contraseña";
+            document.getElementById("authSubtitle").textContent = "Te enviaremos un enlace por correo";
+            document.getElementById("recuperarEmail").value = document.getElementById("loginEmail").value;
+            ocultarError();
+        }
+
+        function recuperarContrasena() {
+            ocultarError();
+            const email = document.getElementById("recuperarEmail").value.trim();
+            if (!email) {
+                mostrarError("Escribe tu correo electrónico.");
+                return;
+            }
+            mostrarLoading();
+            function mostrarExito() {
+                ocultarLoading();
+                const div = document.getElementById("loginError");
+                div.style.borderColor = "#28a745";
+                div.style.color = "#7fe08a";
+                div.style.background = "rgba(40,167,69,0.14)";
+                div.textContent = "Si el correo existe, te enviamos un enlace para restablecer tu contraseña. Revisa también la carpeta de spam o correo no deseado.";
+                div.style.display = "block";
+            }
+            function enviarPorFirebase() {
+                return firebase.auth().sendPasswordResetEmail(email)
+                    .then(mostrarExito)
+                    .catch(error => {
+                        ocultarLoading();
+                        mostrarError(mensajeDeError(error));
+                    });
+            }
+            // Si la función "enviarRecuperacionCorreo" está desplegada y hay SMTP
+            // configurado, el correo sale desde la cuenta del colegio; de lo
+            // contrario se respalda con el envío nativo de Firebase.
+            Promise.resolve()
+                .then(() => firebase.functions().httpsCallable("enviarRecuperacionCorreo")({ correo: email }))
+                .then(resultado => {
+                    if (resultado && resultado.data && resultado.data.enviado) {
+                        mostrarExito();
+                    } else {
+                        enviarPorFirebase();
+                    }
+                })
+                .catch(() => enviarPorFirebase());
+        }
+
+        function registrarUsuario() {
+            ocultarError();
+            const nombre = document.getElementById("regNombre").value.trim();
+            const cedula = document.getElementById("regCedula").value.trim();
+            const email = document.getElementById("regEmail").value.trim();
+            const password = document.getElementById("regPassword").value;
+
+            if (!nombre || !cedula || !email || !password) {
+                mostrarError("Complete todos los campos.");
+                return;
+            }
+
+            mostrarLoading();
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then(cred => {
+                    return db.collection("usuarios").doc(cred.user.uid).set({
+                        nombre: nombre,
+                        correo: email,
+                        cedula: cedula,
+                        rol: "estudiante",
+                        activo: true,
+                        fechaRegistro: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    redirigirSegunRol();
+                })
+                .catch(error => {
+                    ocultarLoading();
+                    mostrarError(mensajeDeError(error));
+                    console.error("Error al registrar: ", error);
+                });
+        }
+
+        function iniciarSesionGoogle() {
+            ocultarError();
+            const provider = new firebase.auth.GoogleAuthProvider();
+            mostrarLoading();
+            firebase.auth().signInWithPopup(provider)
+                .then(() => {
+                    redirigirSegunRol();
+                })
+                .catch(error => {
+                    // Si el navegador bloquea el popup (común en PWA,
+                    // navegadores integrados y modo stand-alone), se usa el
+                    // flujo de redirección, que no depende de ventanas.
+                    if (error.code === "auth/popup-blocked") {
+                        firebase.auth().signInWithRedirect(provider)
+                            .catch(err => {
+                                ocultarLoading();
+                                mostrarError(mensajeDeError(err));
+                                console.error("Error al redirigir a Google: ", err);
+                            });
+                        return;
+                    }
+                    ocultarLoading();
+                    mostrarError(mensajeDeError(error));
+                    console.error("Error al iniciar sesión con Google: ", error);
+                });
+        }
+
+        // Completar el inicio de sesión con Google cuando se usó el flujo de
+        // redirección (por ejemplo, si el navegador bloqueó la ventana emergente).
+        firebase.auth().getRedirectResult().then(result => {
+            if (result && result.user) {
+                redirigirSegunRol();
+            }
+        }).catch(error => {
+            ocultarLoading();
+            mostrarError(mensajeDeError(error));
+            console.error("Error al completar el inicio de sesión con Google: ", error);
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                iniciarSesion();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+# Firebase
+.firebase/
+
+# Dependencias
+node_modules/
+
+# Cachés de Python
+__pycache__/
+*.pyc
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Logs y temporales
+*.log
+*.tmp
+*.swp
+
+# Secretos y credenciales (nunca subir)
+.env
+.env.*
+*.key
+*.pem
+*.p12
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+estoEsADM-*.json

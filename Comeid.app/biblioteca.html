@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioGest</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2b67ff">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #050b2b;
+            --bg-secondary: #031b4e;
+            --bg-tertiary: #081238;
+            --bg-card: #0c1748;
+            --text-primary: #e0e0e0;
+            --text-secondary: #8cbfff;
+            --text-tertiary: #dce6ff;
+            --border-color: #165bd3;
+            --accent-color: #2b67ff;
+            --accent-hover: #17326f;
+            --success-color: #28a745;
+            --danger-color: #c62828;
+            --warning-color: #ffc107;
+            --header-height: 60px;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.light-theme {
+            --bg-primary: #f4f6fb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eef1f8;
+            --bg-card: #ffffff;
+            --text-primary: #1c2333;
+            --text-secondary: #5a6b8c;
+            --text-tertiary: #33415c;
+            --border-color: #d4dbf0;
+            --accent-color: #2b67ff;
+            --accent-hover: #1d4ed8;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 20px;
+            height: var(--header-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .header-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .header-logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo-img {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .header-about {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .header-about:hover {
+            color: var(--accent-color);
+        }
+
+        .header-help {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .header-help:hover {
+            color: var(--accent-color);
+        }
+
+        .scanner-lista-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .scanner-lista-item:hover {
+            border-color: var(--accent-color);
+        }
+
+        .scanner-lista-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+            margin-right: 10px;
+        }
+
+        .scanner-lista-nombre {
+            color: var(--text-primary);
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .scanner-lista-detalle {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .user-profile:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .user-avatar i {
+            font-size: 26px;
+            color: var(--accent-color);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-profile-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(var(--header-height) + 8px);
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            min-width: 260px;
+            z-index: 1000;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .user-profile-dropdown.show {
+            display: block;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+        }
+
+        .profile-actions button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-perfil-comedor {
+            background: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .btn-perfil-salir {
+            background: var(--danger-color);
+            color: #ffffff;
+        }
+
+        /* LOADING Y NOTIFICACIÓN */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--bg-tertiary);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: girar 0.8s linear infinite;
+        }
+
+        @keyframes girar {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .notification {
+            display: none;
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: var(--success-color);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 9998;
+            max-width: 340px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* LAYOUT */
+        .layout {
+            display: flex;
+            height: 100vh;
+            padding-top: var(--header-height);
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 14px;
+            overflow-y: auto;
+            transition: width 0.3s;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            padding: 0 6px;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-color);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-logo-img {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .menu-search {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: block;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .menu-search::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .menu-search:focus {
+            border-color: var(--accent-color);
+        }
+
+        .menu button.hidden {
+            display: none;
+        }
+
+        .menu-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin: 16px 8px 8px;
+        }
+
+        .menu button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 14px;
+            margin: 4px 0;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .menu button:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .menu button.active {
+            background: var(--accent-color);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .menu button i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .card span {
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .chart-container {
+            height: 260px;
+            position: relative;
+        }
+
+        /* BOTONES */
+        .add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* TABLAS */
+        .student-container {
+            overflow-x: auto;
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .student-table th {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .student-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .student-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .table-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            padding: 5px 7px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .edit-btn {
+            color: #fbbf24;
+        }
+
+        .delete-btn {
+            color: #ef5350;
+        }
+
+        .table-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 24px;
+        }
+
+        /* FORMULARIOS MODALES */
+        .form-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+            padding: 20px;
+        }
+
+        .form-container.show {
+            display: flex;
+        }
+
+        .form-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-content h2 {
+            margin-bottom: 18px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            padding: 10px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-save {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-color);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* MENÚ MÓVIL */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-secondary);
+            z-index: 200;
+            flex-direction: column;
+            padding: 10px 16px;
+            overflow-y: auto;
+        }
+
+        .mobile-menu.show {
+            display: flex;
+        }
+
+        .mobile-menu button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .mobile-menu button i {
+            width: 20px;
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        /* IA */
+        .badge-ia {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ia-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ia-mensaje {
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            line-height: 1.6;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+        }
+
+        .ia-gemini {
+            border-left: 4px solid #10b981;
+        }
+
+        .ia-local {
+            border-left: 4px solid #fbbf24;
+        }
+
+        .ia-chat {
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .chat-burbuja {
+            max-width: 85%;
+            padding: 9px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .chat-usuario {
+            align-self: flex-end;
+            background: var(--accent-color);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-ia {
+            align-self: flex-start;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .version-footer {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .permiso-nota {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* CONFIG SECTION */
+        .config-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .config-section h3 {
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-size: 16px;
+        }
+
+        .config-section label {
+            display: block;
+            margin-bottom: 6px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #111d55;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .light-theme .config-input {
+            background: #eef2ff;
+            color: #1a2a4a;
+        }
+
+        .light-theme .menu-search {
+            background: #eef2ff;
+            border-color: #c9d4f0;
+            color: #1a2a4a;
+        }
+
+        .light-theme .menu-search::placeholder {
+            color: #5a6b8c;
+        }
+
+        .save-config-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            font-size: 14px;
+        }
+
+        .save-config-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* INTERRUPTOR (multas) */
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 10px 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #3a4a7a;
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            top: 3px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .switch input:checked + .switch-slider {
+            background: var(--accent-color);
+        }
+
+        .switch input:checked + .switch-slider::before {
+            transform: translateX(24px);
+        }
+
+        /* SEMÁFORO DE VENCIMIENTOS */
+        .estado-semaforo {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .semaforo-normal {
+            background: rgba(40, 167, 69, 0.15);
+            color: #28a745;
+        }
+
+        .semaforo-proximo {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        .semaforo-atrasado {
+            background: rgba(239, 83, 80, 0.15);
+            color: #ef5350;
+        }
+
+        .multa-negativa {
+            color: #ef5350;
+            font-weight: 700;
+        }
+
+        /* ESTADO DE EJEMPLARES */
+        .estado-bueno {
+            background: rgba(40, 167, 69, 0.15);
+            color: #28a745;
+        }
+
+        .estado-danado {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        .estado-perdido {
+            background: rgba(239, 83, 80, 0.15);
+            color: #ef5350;
+        }
+
+        .ficha-cover {
+            width: 100px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .ficha-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .ficha-item span:first-child {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .ficha-item span:last-child {
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-menu-toggle {
+                display: block;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: var(--header-height);
+                bottom: 0;
+                z-index: 150;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+
+            .content {
+                padding: 14px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+        }
+
+        .badge {
+            margin-left: auto;
+            background: var(--accent-color, #2b67ff);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 10px;
+            padding: 0 5px;
+            align-items: center;
+            justify-content: center;
+            display: inline-flex;
+        }
+
+        .notif-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .notif-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .notif-leida {
+            opacity: 0.65;
+        }
+
+        .notif-tipo {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="header-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-logo"><img src="logo.png" class="header-logo-img" alt="Integra ID" onerror="this.style.display='none'"><span id="headerLogo">BiblioGest</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px; position: relative;">
+            <div class="user-profile" onclick="toggleUserProfile()" id="userProfile">
+                <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="user-info">
+                    <span id="userName" style="font-weight: bold; font-size: 14px;"></span>
+                    <span id="userRole" style="color: var(--text-secondary); font-size: 12px;"></span>
+                </div>
+                <i class="fas fa-chevron-down" style="color: var(--text-secondary); font-size: 12px;"></i>
+            </div>
+
+            <div class="header-help" onclick="mostrarAyudaBib()" id="headerHelp">
+                <i class="fas fa-question-circle"></i>
+                <span id="headerAyuda">Ayuda</span>
+            </div>
+            <div class="header-about" onclick="mostrarAcercaDeBib()">
+                <i class="fas fa-info-circle"></i>
+                <span id="headerAcercaDe">Acerca de</span>
+            </div>
+
+            <div class="user-profile-dropdown" id="userProfileDropdown">
+                <div class="profile-header">
+                    <div class="user-avatar" style="font-size: 36px;"><i class="fas fa-user-circle"></i></div>
+                    <div>
+                        <h3 id="profileName" style="color: var(--text-primary);"></h3>
+                        <p id="profileRole" style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;"></p>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn-perfil-comedor" id="instalarAppBtn" style="display:none;" onclick="instalarApp()">
+                        <i class="fas fa-download"></i> <span id="instalarApp">Instalar app</span>
+                    </button>
+                    <button class="btn-perfil-comedor" onclick="cambiarSistema()">
+                        <i class="fas fa-exchange-alt"></i> <span id="profileCambiarSistema">Cambiar sistema</span>
+                    </button>
+                    <button class="btn-perfil-salir" onclick="cerrarSesion()">
+                        <i class="fas fa-sign-out-alt"></i> <span id="profileCerrarSesion">Cerrar Sesión</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVISO SIN CONEXIÓN -->
+    <div id="offlineBanner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #f59e0b; color: #111; padding: 11px 16px; text-align: center; font-weight: 600; font-size: 13px; z-index: 9999;">
+        <i class="fas fa-wifi"></i> <span>Sin conexión</span>
+    </div>
+
+    <!-- MENÚ MÓVIL -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button onclick="mostrarBibDashboard(); closeMobileMenu();">
+            <i class="fas fa-chart-pie"></i> <span id="mobileDashboard">Dashboard</span>
+        </button>
+        <button onclick="mostrarEstudiantesBib(); closeMobileMenu();">
+            <i class="fas fa-users"></i> <span id="mobileEstudiantesBib">Estudiantes de biblioteca</span>
+        </button>
+        <button onclick="mostrarCatalogoLibros(); closeMobileMenu();">
+            <i class="fas fa-book-open"></i> <span id="mobileCatalogo">Catálogo de libros</span>
+        </button>
+        <button onclick="mostrarPrestamos(); closeMobileMenu();">
+            <i class="fas fa-hand-holding"></i> <span id="mobilePrestamos">Préstamos</span>
+        </button>
+        <button onclick="mostrarHistorialPrestamos(); closeMobileMenu();">
+            <i class="fas fa-history"></i> <span id="mobileHistorial">Historial</span>
+        </button>
+        <button onclick="mostrarMiCuenta(); closeMobileMenu();">
+            <i class="fas fa-id-card"></i> <span id="mobileMiCuenta">Mi cuenta</span>
+        </button>
+        <button onclick="mostrarReservas(); closeMobileMenu();">
+            <i class="fas fa-bookmark"></i> <span id="mobileReservas">Reservas</span>
+        </button>
+        <button onclick="mostrarAlertas(); closeMobileMenu();">
+            <i class="fas fa-bell"></i> <span id="mobileAlertas">Alertas</span>
+        </button>
+        <button onclick="mostrarNotificaciones(); closeMobileMenu();">
+            <i class="fas fa-bell"></i> <span id="mobileNotificaciones">Notificaciones</span>
+        </button>
+        <button onclick="mostrarMapa(); closeMobileMenu();">
+            <i class="fas fa-map-marked-alt"></i> <span id="mobileMapa">Mapa</span>
+        </button>
+        <button onclick="mostrarReportes(); closeMobileMenu();">
+            <i class="fas fa-file-alt"></i> <span id="mobileReportes">Reportes</span>
+        </button>
+        <button onclick="mostrarBibIA(); closeMobileMenu();">
+            <i class="fas fa-robot"></i> <span id="mobileIA">IA de biblioteca</span>
+        </button>
+        <button onclick="mostrarConfiguracionBib(); closeMobileMenu();">
+            <i class="fas fa-cog"></i> <span id="mobileConfiguracion">Configuración</span>
+        </button>
+        <button onclick="mostrarAcercaDeBib(); closeMobileMenu();">
+            <i class="fas fa-info-circle"></i> <span id="mobileAcercaDe">Acerca de</span>
+        </button>
+        <button onclick="mostrarAyudaBib(); closeMobileMenu();">
+            <i class="fas fa-question-circle"></i> <span id="mobileAyuda">Ayuda</span>
+        </button>
+        <button onclick="mostrarActividad(); closeMobileMenu();">
+            <i class="fas fa-clipboard-list"></i> <span id="mobileActividad">Actividad</span>
+        </button>
+        <button onclick="cambiarSistema(); closeMobileMenu();">
+            <i class="fas fa-exchange-alt"></i> <span id="mobileCambiarSistema">Cambiar sistema</span>
+        </button>
+        <button onclick="cerrarSesion(); closeMobileMenu();">
+            <i class="fas fa-sign-out-alt"></i> <span id="mobileCerrarSesion">Cerrar Sesión</span>
+        </button>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo"><img src="logo.png" class="sidebar-logo-img" alt="Integra ID" onerror="this.style.display='none'"><span id="sidebarLogo">BiblioGest</span></span>
+            </div>
+
+            <input type="text" id="menuSearch" class="menu-search" placeholder="Buscar función..." autocomplete="new-password" autocapitalize="off" spellcheck="false">
+
+            <div class="menu">
+                <h4 class="menu-title" id="menuGeneralTitle">General</h4>
+
+                <button class="active" data-vista="dashboard" onclick="mostrarBibDashboard()">
+                    <i class="fas fa-chart-pie"></i> <span id="menuDashboard">Dashboard</span>
+                </button>
+                <button data-vista="estudiantesBib" onclick="mostrarEstudiantesBib()">
+                    <i class="fas fa-users"></i> <span id="menuEstudiantesBib">Estudiantes de biblioteca</span>
+                </button>
+                <button data-vista="catalogo" onclick="mostrarCatalogoLibros()">
+                    <i class="fas fa-book-open"></i> <span id="menuCatalogo">Catálogo de libros</span>
+                </button>
+                <button data-vista="prestamos" onclick="mostrarPrestamos()">
+                    <i class="fas fa-hand-holding"></i> <span id="menuPrestamos">Préstamos</span>
+                </button>
+                <button data-vista="historial" onclick="mostrarHistorialPrestamos()">
+                    <i class="fas fa-history"></i> <span id="menuHistorial">Historial</span>
+                </button>
+                <button data-vista="micuenta" onclick="mostrarMiCuenta()">
+                    <i class="fas fa-id-card"></i> <span id="menuMiCuenta">Mi cuenta</span>
+                </button>
+                <button data-vista="reservas" onclick="mostrarReservas()">
+                    <i class="fas fa-bookmark"></i> <span id="menuReservas">Reservas</span>
+                </button>
+                <button data-vista="alertas" onclick="mostrarAlertas()">
+                    <i class="fas fa-bell"></i> <span id="menuAlertas">Alertas</span>
+                </button>
+                <button data-vista="notificaciones" onclick="mostrarNotificaciones()">
+                    <i class="fas fa-bell"></i> <span id="menuNotificaciones">Notificaciones</span>
+                    <span class="badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <button data-vista="mapa" onclick="mostrarMapa()">
+                    <i class="fas fa-map-marked-alt"></i> <span id="menuMapa">Mapa</span>
+                </button>
+                <button data-vista="reportes" onclick="mostrarReportes()">
+                    <i class="fas fa-file-alt"></i> <span id="menuReportes">Reportes</span>
+                </button>
+                <button data-vista="ia" onclick="mostrarBibIA()">
+                    <i class="fas fa-robot"></i> <span id="menuIA">IA de biblioteca</span>
+                </button>
+                <button data-vista="configuracion" onclick="mostrarConfiguracionBib()">
+                    <i class="fas fa-cog"></i> <span id="menuConfiguracion">Configuración</span>
+                </button>
+                <button data-vista="actividad" onclick="mostrarActividad()">
+                    <i class="fas fa-clipboard-list"></i> <span id="menuActividad">Actividad</span>
+                </button>
+
+                <h4 class="menu-title" id="menuSistemaTitle">Sistema</h4>
+
+                <button onclick="cambiarSistema()">
+                    <i class="fas fa-exchange-alt"></i> <span id="menuCambiarSistema">Cambiar sistema</span>
+                </button>
+                <button onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt"></i> <span id="menuCerrarSesion">Cerrar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="panel" id="contenido"></div>
+            <div class="version-footer" id="versionText"></div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE LIBRO -->
+    <div class="form-container" id="formLibro">
+        <div class="form-content">
+            <h2 id="libroFormTitle">Nuevo libro</h2>
+            <div class="form-group">
+                <label id="libroFormTitulo">Título *</label>
+                <input type="text" id="libroTitulo" placeholder="Título del libro">
+            </div>
+            <div class="form-group">
+                <label id="libroFormAutor">Autor *</label>
+                <input type="text" id="libroAutor" placeholder="Autor">
+            </div>
+            <div class="form-group">
+                <label id="libroFormCategoria">Categoría</label>
+                <select id="libroCategoria">
+                    <option value="Novela">Novela</option>
+                    <option value="Cuento">Cuento</option>
+                    <option value="Poesía">Poesía</option>
+                    <option value="Ensayo">Ensayo</option>
+                    <option value="Historia">Historia</option>
+                    <option value="Ciencia">Ciencia</option>
+                    <option value="Matemática">Matemática</option>
+                    <option value="Idiomas">Idiomas</option>
+                    <option value="Tecnología">Tecnología</option>
+                    <option value="Enciclopedia">Enciclopedia</option>
+                    <option value="Diccionario">Diccionario</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="libroFormEditorial">Editorial</label>
+                <input type="text" id="libroEditorial" placeholder="Editorial">
+            </div>
+            <div class="form-group">
+                <label id="libroFormAnio">Año</label>
+                <input type="number" id="libroAnio" placeholder="2020" min="1900" max="2100">
+            </div>
+            <div class="form-group">
+                <label id="libroFormEjemplares">Ejemplares *</label>
+                <input type="number" id="libroEjemplares" placeholder="1" min="1">
+            </div>
+            <div class="form-group">
+                <label id="libroFormCodigo">Código del libro *</label>
+                <input type="text" id="libroCodigo" placeholder="BIB-0001">
+            </div>
+            <div class="form-group">
+                <label id="libroFormIsbn">ISBN</label>
+                <input type="text" id="libroIsbn" placeholder="978-3-16-148410-0">
+            </div>
+            <div class="form-group">
+                <label id="libroFormUbicacion">Ubicación en la biblioteca</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <input type="text" id="libroEstante" placeholder="Estante">
+                    <input type="text" id="libroSeccion" placeholder="Sección">
+                    <input type="text" id="libroNivel" placeholder="Nivel">
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="libroFormPortada">URL de la portada</label>
+                <input type="text" id="libroPortada" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label id="libroFormEstado">Estado de los ejemplares</label>
+                <select id="libroEstado" style="width:100%; padding:12px; border:none; border-radius:12px; background:#111d55; color:white; font-size:14px;">
+                    <option value="Bueno">Bueno</option>
+                    <option value="Dañado">Dañado</option>
+                    <option value="Perdido">Perdido</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="cerrarFormLibro()" id="libroCancelarBtn">Cancelar</button>
+                <button class="btn-save" onclick="guardarLibro()" id="libroGuardarBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE PRÉSTAMO -->
+    <div class="form-container" id="formPrestamo">
+        <div class="form-content">
+            <h2 id="prestamoFormTitle">Nuevo préstamo</h2>
+            <div class="form-group">
+                <label id="prestamoFormLibro">Libro *</label>
+                <select id="prestamoLibro"></select>
+                <button type="button" class="btn-save" style="width:100%; margin-top:8px;" onclick="abrirScanner('prestamo')">
+                    <i class="fas fa-qrcode"></i> <span id="prestamoEscanearLibro">Escanear libro</span>
+                </button>
+            </div>
+            <div class="form-group">
+                <label id="prestamoFormTipoPrestamista">Tipo de persona</label>
+                <select id="prestamoTipoPrestamista" onchange="actualizarPrestamistas()">
+                    <option value="Estudiante">Estudiante</option>
+                    <option value="Profesor">Profesor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="prestamoFormPrestamista">Persona *</label>
+                <select id="prestamoPrestamista"></select>
+            </div>
+            <div class="form-group">
+                <label id="prestamoFormDias">Días de préstamo</label>
+                <input type="number" id="prestamoDias" value="7" min="1" max="60">
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="cerrarFormPrestamo()" id="prestamoCancelarBtn">Cancelar</button>
+                <button class="btn-save" onclick="guardarPrestamo()" id="prestamoGuardarBtn">Prestar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL QR DEL LIBRO -->
+    <div class="form-container" id="modalQR">
+        <div class="form-content" style="max-width: 420px; text-align: center;">
+            <h2 id="qrModalTitle">Código QR del libro</h2>
+            <div id="qrCanvasBox" style="background:#ffffff; padding:12px; border-radius:12px; margin:10px auto; display:inline-block;"></div>
+            <p id="qrModalLibro" style="color: var(--text-secondary); font-size: 13px;"></p>
+            <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+                <button class="btn-save" onclick="imprimirQRLibro()"><i class="fas fa-print"></i> <span id="qrImprimir">Imprimir</span></button>
+                <button class="btn-cancel" onclick="cerrarModalQR()" id="qrCerrarBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ESCÁNER DE QR -->
+    <div class="form-container" id="modalScanner">
+        <div class="form-content" style="max-width: 480px;">
+            <h2 id="scannerTitle">Escanear código QR</h2>
+            <video id="scannerVideo" style="width:100%; max-height:280px; border-radius:12px; background:#000;" playsinline muted></video>
+            <p id="scannerStatus" style="color: var(--text-secondary); font-size: 13px; margin-top: 8px; text-align: center;">Escaneando...</p>
+            <div class="form-actions">
+                <button class="btn-save" id="startScannerBtn" onclick="iniciarEscaneoLibro()"><i class="fas fa-play"></i> <span id="scannerIniciar">Iniciar escáner</span></button>
+                <button class="btn-cancel" id="stopScannerBtn" style="display:none;" onclick="detenerEscaneoLibro()"><i class="fas fa-stop"></i> <span id="scannerDetener">Detener</span></button>
+                <button class="btn-cancel" onclick="cerrarModalScanner()" id="scannerCerrarBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FICHA DEL LIBRO -->
+    <div class="form-container" id="modalFichaLibro">
+        <div class="form-content" style="max-width: 520px;">
+            <div id="fichaLibroContenido"></div>
+        </div>
+    </div>
+
+    <!-- MODAL AYUDA -->
+    <div class="form-container" id="modalAyudaBib">
+        <div class="form-content" style="max-width: 640px; max-height: 85vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="ayudaTitulo" style="color: var(--text-primary);">Ayuda</h2>
+                <button onclick="cerrarAyudaBib()" style="background:none; border:none; color:var(--text-secondary); font-size:22px; cursor:pointer;" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p id="ayudaSubtitle" style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 12px;"></p>
+            <div id="ayudaContenido"></div>
+            <div style="text-align:center; margin-top:16px;">
+                <button class="btn-save" onclick="cerrarAyudaBib()" id="ayudaEntendidoBtn">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DEVOLUCIÓN DE EJEMPLAR (varios préstamos del mismo libro) -->
+    <div class="form-container" id="modalDevolverEjemplar">
+        <div class="form-content" style="max-width: 480px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="color: var(--text-primary); font-size:17px;" id="devolverEjemplarTitulo">Devolver ejemplar</h2>
+                <button onclick="cerrarModalDevolverEjemplar()" style="background:none; border:none; color:var(--text-secondary); font-size:22px; cursor:pointer;" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 12px;" id="devolverEjemplarSubtitulo"></p>
+            <div id="devolverEjemplarLista"></div>
+            <div style="text-align:center; margin-top:16px;">
+                <button class="btn-cancel" onclick="cerrarModalDevolverEjemplar()" id="devolverEjemplarCerrar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/gemini-config.js"></script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function() {
+                navigator.serviceWorker.register("sw.js").catch(function(e) {
+                    console.warn("Service Worker no disponible:", e);
+                });
+            });
+        }
+        let deferredPrompt = null;
+        window.addEventListener("beforeinstallprompt", function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            var btn = document.getElementById("instalarAppBtn");
+            if (btn) btn.style.display = "flex";
+        });
+        function instalarApp() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
+        }
+    </script>
+    <script src="js/biblioteca/globales.js"></script>
+    <script src="js/biblioteca/utilidades.js"></script>
+    <script src="js/biblioteca/traducciones.js"></script>
+    <script src="js/biblioteca/app.js"></script>
+    <script src="js/biblioteca/libros.js"></script>
+    <script src="js/biblioteca/estudiantes.js"></script>
+    <script src="js/biblioteca/prestamos.js"></script>
+    <script src="js/biblioteca/ia.js"></script>
+    <script src="js/biblioteca/mapa.js"></script>
+    <script src="js/biblioteca/qr.js"></script>
+    <script src="js/biblioteca/alertas.js"></script>
+    <script src="js/biblioteca/reportes.js"></script>
+    <script src="js/biblioteca/configuracion.js"></script>
+    <script src="js/biblioteca/actividad.js"></script>
+    <script src="js/biblioteca/notificaciones.js"></script>
+    <script src="js/biblioteca/reservas.js"></script>
+    <script src="js/biblioteca/ayuda.js"></script>
+    <script src="js/biblioteca/micuenta.js"></script>
+</body>
+
+</html>
