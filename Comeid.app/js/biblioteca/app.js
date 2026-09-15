@@ -225,6 +225,34 @@ function librosDisponibles() {
     });
 }
 
+let disponiblesSincronizados = false;
+
+// Mantiene el campo "disponibles" de cada libro al día (lo lee el portal
+// de estudiantes para el catálogo). Corre una vez por sesión tras cargar
+// los datos, y no interfiere con los cálculos locales del panel.
+function sincronizarDisponibles() {
+    if (disponiblesSincronizados) return Promise.resolve();
+    disponiblesSincronizados = true;
+    const activos = prestamos.filter(p => !p.devuelto);
+    const batch = db.batch();
+    let cambios = 0;
+    libros.forEach(libro => {
+        const prestados = activos.filter(p => p.libroId === libro.id).length;
+        const calculado = Math.max(0, (Number(libro.ejemplares) || 0) - prestados);
+        const guardado = (libro.disponibles !== undefined && libro.disponibles !== null)
+            ? Number(libro.disponibles)
+            : null;
+        if (guardado === null || guardado !== calculado) {
+            batch.update(db.collection("libros").doc(libro.id), { disponibles: calculado });
+            cambios++;
+        }
+    });
+    if (cambios === 0) return Promise.resolve();
+    return batch.commit().catch(error => {
+        console.warn("No se pudo sincronizar la disponibilidad de los libros:", error.message);
+    });
+}
+
 function esPrestamoAtrasado(prestamo) {
     if (prestamo.devuelto || !prestamo.fechaVencimiento) return false;
     return new Date(prestamo.fechaVencimiento + "T23:59:59").getTime() < Date.now();
@@ -566,6 +594,7 @@ window.onload = function() {
                 ocultarLoading();
                 pedirPermisoNotificaciones();
                 recordarVencimientosLocales();
+                sincronizarDisponibles();
                 mostrarBibDashboard();
             }).catch(error => {
                 console.error("Error al cargar datos de la biblioteca: ", error);

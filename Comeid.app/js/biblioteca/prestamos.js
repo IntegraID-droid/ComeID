@@ -167,6 +167,8 @@ function guardarPrestamo() {
         devuelto: false,
         fechaDevolucion: null
     }).then(() => {
+        return db.collection("libros").doc(libroId).update({ disponibles: firebase.firestore.FieldValue.increment(-1) });
+    }).then(() => {
         ocultarLoading();
         mostrarNotificacion(trad.notificacionPrestamoCreado, "ok");
         registrarActividad("crear_prestamo", `${libro.titulo} → ${prestamista.nombre}`);
@@ -216,6 +218,10 @@ function devolverPrestamo(id) {
         if (prestamo) {
             registrarActividad("devolver_prestamo", `${prestamo.libroTitulo} — ${prestamo.prestamistaNombre}` + (multa > 0 ? ` (multa ₡${multa.toLocaleString()})` : ""));
         }
+        return prestamo
+            ? db.collection("libros").doc(prestamo.libroId).update({ disponibles: firebase.firestore.FieldValue.increment(1) })
+            : Promise.resolve();
+    }).then(() => {
         return cargarPrestamos();
     }).then(() => {
         return prestamo ? procesarColaReservas(prestamo.libroId) : Promise.resolve();

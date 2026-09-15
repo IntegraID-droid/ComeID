@@ -332,6 +332,10 @@ function aplicarFilaLibro(datos, registrados, conteo) {
     const p = campoLibro(datos);
     const existente = registrados.get(clave) || libros.find(l => libroClave(l.codigo) === clave);
     if (existente) {
+        if (p.ejemplares) {
+            const prestados = prestamos.filter(x => !x.devuelto && x.libroId === existente.id).length;
+            p.disponibles = Math.max(0, p.ejemplares - prestados);
+        }
         return db.collection("libros").doc(existente.id).update(p).then(() => {
             Object.assign(existente, p);
             registrados.set(clave, existente);
@@ -342,6 +346,8 @@ function aplicarFilaLibro(datos, registrados, conteo) {
         autor: "", categoria: "", editorial: "", anio: 0, ejemplares: 1,
         isbn: "", estante: "", seccion: "", nivel: "", estado: "Bueno", portada: ""
     }, p);
+    if (!nuevoLibro.ejemplares) nuevoLibro.ejemplares = 1;
+    nuevoLibro.disponibles = Math.max(0, Number(nuevoLibro.ejemplares) || 0);
     return db.collection("libros").add(nuevoLibro).then(ref => {
         const nuevo = Object.assign({ id: ref.id }, nuevoLibro);
         registrados.set(clave, nuevo);

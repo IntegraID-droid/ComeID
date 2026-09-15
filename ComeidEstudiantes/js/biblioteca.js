@@ -32,6 +32,11 @@ function renderBiblioteca() {
         <div class="page-title">Mi biblioteca</div>
         <p class="page-subtitle">Préstamos, devoluciones y reservas en BiblioGest.</p>
 
+        <div class="section-title"><i class="fa-solid fa-magnifying-glass"></i> Catálogo disponible</div>
+        <p class="page-subtitle">Busca libros y materiales (calculadoras, reglas, etc.) disponibles en la biblioteca y pídelos al préstamo.</p>
+        <input class="cat-input" id="catalogoBuscar" placeholder="Buscar por título, autor, código o categoría..." oninput="filtrarCatalogo(this.value)" style="width:100%; margin-top:4px;">
+        <div id="catalogoEstudiantes" style="margin-top:12px;"></div>
+
         ${atrasados.length > 0 ? `
         <div style="background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.4); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
             <div style="display: flex; align-items: center; gap: 8px; color: #ef5350; font-weight: 700; font-size: 14px;">
@@ -105,12 +110,83 @@ function renderBiblioteca() {
                 <tbody>${filasHistorial}</tbody>
               </table></div>`}
     `;
+    renderCatalogo();
+}
+
+function cargarCatalogo() {
+    return db.collection("libros").get().then(qs => {
+        App.catalogo = [];
+        qs.forEach(d => App.catalogo.push(Object.assign({ id: d.id }, d.data())));
+    }).catch(() => { App.catalogo = []; });
+}
+
+function disponibilidadLibro(libro) {
+    if (libro.disponibles !== undefined && libro.disponibles !== null) return Math.max(0, Number(libro.disponibles) || 0);
+    return Number(libro.ejemplares) || 0;
+}
+
+function esLibroMostrable(libro) {
+    return (libro.estado || "Bueno") === "Bueno" && disponibilidadLibro(libro) > 0;
+}
+
+function esMaterial(libro) {
+    const cat = (libro.categoria || "").toLowerCase();
+    const literarias = ["novela", "cuento", "poesía", "poesia", "ensayo", "historia", "ciencia", "matemática", "matematica", "idiomas", "tecnología", "tecnologia", "enciclopedia", "diccionario"];
+    return literarias.indexOf(cat) === -1;
+}
+
+function renderCatalogo() {
+    const cont = document.getElementById("catalogoEstudiantes");
+    if (!cont) return;
+    const lista = (App.catalogo || []).filter(esLibroMostrable).sort((a, b) => String(a.titulo || "").localeCompare(String(b.titulo || "")));
+    if (lista.length === 0) {
+        cont.innerHTML = `<div class="card empty"><i class="fa-solid fa-book-open"></i> No hay materiales disponibles por ahora.</div>`;
+        return;
+    }
+    cont.innerHTML = lista.map(l => `
+        <div class="list-item">
+            <div class="li-head">
+                <span class="li-title"><i class="fa-solid ${esMaterial(l) ? "fa-box" : "fa-book-open"}" style="margin-right:6px; color:var(--accent-color);"></i>${escaparHTML(l.titulo)}</span>
+                <span class="badge badge-ok">Disponible (${disponibilidadLibro(l)})</span>
+            </div>
+            <div class="li-sub">
+                ${esMaterial(l) && (l.categoria || "Otro") !== "Otro" ? `<span style="opacity:.9;">Material</span> · ` : ""}
+                ${l.autor ? escaparHTML(l.autor) : (l.categoria || "")}<br>
+                ${l.codigo ? `<span style="opacity:.85;">Código: ${escaparHTML(l.codigo)}</span>` : ""}
+            </div>
+        </div>
+    `).join("");
+}
+
+function filtrarCatalogo(query) {
+    const q = String(query || "").toLowerCase().trim();
+    const cont = document.getElementById("catalogoEstudiantes");
+    if (!cont) return;
+    const lista = (App.catalogo || []).filter(esLibroMostrable)
+        .filter(l => !q || [l.titulo, l.autor, l.codigo, l.categoria].some(v => String(v || "").toLowerCase().includes(q)))
+        .sort((a, b) => String(a.titulo || "").localeCompare(String(b.titulo || "")));
+    if (lista.length === 0) {
+        cont.innerHTML = `<div class="card empty"><i class="fa-solid fa-magnifying-glass"></i> No se encontró nada con "${escaparHTML(query)}".</div>`;
+        return;
+    }
+    cont.innerHTML = lista.map(l => `
+        <div class="list-item">
+            <div class="li-head">
+                <span class="li-title"><i class="fa-solid ${esMaterial(l) ? "fa-box" : "fa-book-open"}" style="margin-right:6px; color:var(--accent-color);"></i>${escaparHTML(l.titulo)}</span>
+                <span class="badge badge-ok">Disponible (${disponibilidadLibro(l)})</span>
+            </div>
+            <div class="li-sub">
+                ${l.autor ? escaparHTML(l.autor) : (l.categoria || "")}<br>
+                ${l.codigo ? `<span style="opacity:.85;">Código: ${escaparHTML(l.codigo)}</span>` : ""}
+            </div>
+        </div>
+    `).join("");
 }
 
 const PAGE = {
     init: function () {
         mostrarCargando();
-        Promise.all([cargarPrestamosPropios(), cargarReservasPropias()])
+        Promise.all([cargarPrestamosPropios(), cargarReservasPropias(), cargarCatalogo()])
             .then(renderBiblioteca)
             .catch(renderBiblioteca);
     }

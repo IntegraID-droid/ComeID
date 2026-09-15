@@ -199,7 +199,8 @@ function guardarLibro() {
         seccion: document.getElementById("libroSeccion").value.trim(),
         nivel: document.getElementById("libroNivel").value.trim(),
         portada: document.getElementById("libroPortada").value.trim(),
-        estado: document.getElementById("libroEstado").value
+        estado: document.getElementById("libroEstado").value,
+        disponibles: Math.max(0, ejemplares - prestamos.filter(p => p.libroId === (libroEditando ? libroEditando.id : null) && !p.devuelto).length)
     };
 
     mostrarLoading();
