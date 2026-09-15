@@ -8,6 +8,66 @@ let tokenScanner = 0;
 let ultimoCodigo = "";
 let ultimoTiempo = 0;
 let escaneoDestino = ""; // "" | "prestamo" | "devolucion"
+let contextoAudioScanner = null;
+
+// Preparar el audio dentro del gesto del usuario para que el beep funcione después
+function prepararAudioScanner() {
+    try {
+        if (!contextoAudioScanner) {
+            contextoAudioScanner = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (contextoAudioScanner.state === "suspended") contextoAudioScanner.resume();
+    } catch (e) { /* sin audio */ }
+}
+
+// Beep de confirmación: "ok" o "error"
+function reproducirSonidoScanner(tipo) {
+    try {
+        if (!contextoAudioScanner) return;
+        if (contextoAudioScanner.state === "suspended") contextoAudioScanner.resume();
+        const ahora = contextoAudioScanner.currentTime;
+        const tocar = (frecuencia, inicio, duracion, volumen) => {
+            const osc = contextoAudioScanner.createOscillator();
+            const gan = contextoAudioScanner.createGain();
+            osc.type = "sine";
+            osc.frequency.value = frecuencia;
+            gan.gain.setValueAtTime(0.0001, ahora + inicio);
+            gan.gain.exponentialRampToValueAtTime(volumen, ahora + inicio + 0.01);
+            gan.gain.exponentialRampToValueAtTime(0.0001, ahora + inicio + duracion);
+            osc.connect(gan);
+            gan.connect(contextoAudioScanner.destination);
+            osc.start(ahora + inicio);
+            osc.stop(ahora + inicio + duracion + 0.02);
+        };
+        if (tipo === "ok") {
+            tocar(880, 0, 0.15, 0.3);
+            tocar(1320, 0.12, 0.15, 0.25);
+        } else {
+            tocar(220, 0, 0.25, 0.28);
+        }
+    } catch (e) { /* sin audio */ }
+}
+
+function vibrarScanner(ms) {
+    try {
+        if (navigator.vibrate) navigator.vibrate(ms);
+    } catch (e) { /* sin vibración */ }
+}
+
+// Muestra el resultado del escaneo en grande para que se alcance a leer
+function mostrarResultadoScanner(texto, ok) {
+    const div = document.getElementById("scannerResultLibro");
+    if (!div) return;
+    div.innerHTML = texto;
+    div.style.display = "block";
+    div.style.background = ok
+        ? "rgba(16,185,129,0.15)"
+        : "rgba(239,68,68,0.15)";
+    div.style.color = ok ? "#10b981" : "#ef5350";
+    div.style.border = ok
+        ? "1px solid rgba(16,185,129,0.4)"
+        : "1px solid rgba(239,68,68,0.4)";
+}
 
 // Crea un canvas con el QR (con zona blanca de seguridad)
 function crearCanvasQR(contenido, cellSize, margin) {
@@ -105,6 +165,8 @@ async function abrirScanner(destino) {
     const statusDiv = document.getElementById("scannerStatus");
     statusDiv.textContent = trad.scannerStatus;
     statusDiv.style.display = "block";
+    const resultDiv = document.getElementById("scannerResultLibro");
+    if (resultDiv) resultDiv.style.display = "none";
     document.getElementById("modalScanner").classList.add("show");
     try {
         await cargarScript(URL_ZXING);
@@ -124,6 +186,7 @@ function iniciarEscaneoLibro() {
     detenerEscaneoLibro();
     ultimoCodigo = "";
     ultimoTiempo = 0;
+    prepararAudioScanner();
 
     const video = document.getElementById("scannerVideo");
     const statusDiv = document.getElementById("scannerStatus");
@@ -220,7 +283,9 @@ function procesarCodigoLibro(texto) {
 
     const libro = libroDesdePayload(texto);
     if (!libro) {
-        mostrarNotificacion(trad.scannerNoEncontrado, "error");
+        reproducirSonidoScanner("error");
+        vibrarScanner(200);
+        mostrarResultadoScanner(`<i class="fas fa-times-circle"></i> ${trad.scannerNoEncontrado}`, false);
         return;
     }
 
@@ -229,28 +294,42 @@ function procesarCodigoLibro(texto) {
         if (select) {
             select.value = libro.id;
             if (select.value !== libro.id) {
-                mostrarNotificacion(trad.prestamoSinDisponibles, "error");
+                reproducirSonidoScanner("error");
+                vibrarScanner(200);
+                mostrarResultadoScanner(`<i class="fas fa-ban"></i> ${trad.prestamoSinDisponibles}`, false);
                 return;
             }
         }
-        mostrarNotificacion(trad.scannerUsarEnPrestamo + ": " + libro.titulo, "ok");
-        cerrarModalScanner();
+        reproducirSonidoScanner("ok");
+        vibrarScanner(120);
+        mostrarResultadoScanner(`<i class="fas fa-check-circle"></i> ${trad.scannerUsarEnPrestamo}: ${escaparHTML(libro.titulo)}`, true);
+        setTimeout(() => cerrarModalScanner(), 800);
         return;
     }
 
     const activos = prestamos.filter(p => p.libroId === libro.id && !p.devuelto);
     if (activos.length === 0) {
-        mostrarNotificacion(trad.scannerNoPrestamoActivo, "error");
+        reproducirSonidoScanner("error");
+        vibrarScanner(200);
+        mostrarResultadoScanner(`<i class="fas fa-times-circle"></i> ${trad.scannerNoPrestamoActivo}`, false);
         return;
     }
-    cerrarModalScanner();
+    reproducirSonidoScanner("ok");
+    vibrarScanner(120);
     if (activos.length === 1) {
-        mostrarNotificacion(trad.scannerDevolverRegistrada + ": " + libro.titulo, "ok");
-        devolverPrestamo(activos[0].id);
+        mostrarResultadoScanner(`<i class="fas fa-check-circle"></i> ${trad.scannerDevolverRegistrada}: ${escaparHTML(libro.titulo)}`, true);
+        setTimeout(() => {
+            cerrarModalScanner();
+            devolverPrestamo(activos[0].id);
+        }, 800);
         return;
     }
     // Varios ejemplares prestados: se elige cuál se devuelve
-    mostrarOpcionesDevolucion(libro, activos);
+    mostrarResultadoScanner(`<i class="fas fa-check-circle"></i> Varios préstamos: elige el ejemplar`, true);
+    setTimeout(() => {
+        cerrarModalScanner();
+        mostrarOpcionesDevolucion(libro, activos);
+    }, 800);
 }
 
 // Muestra la lista de préstamos activos del libro para elegir cuál devolver

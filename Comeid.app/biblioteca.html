@@ -1389,6 +1389,7 @@
             <h2 id="scannerTitle">Escanear código QR</h2>
             <video id="scannerVideo" style="width:100%; max-height:280px; border-radius:12px; background:#000;" playsinline muted></video>
             <p id="scannerStatus" style="color: var(--text-secondary); font-size: 13px; margin-top: 8px; text-align: center;">Escaneando...</p>
+            <div id="scannerResultLibro" style="display:none; margin-top:10px; padding:12px 14px; border-radius:12px; font-size:15px; font-weight:600; text-align:center; letter-spacing:.3px;"></div>
             <div class="form-actions">
                 <button class="btn-save" id="startScannerBtn" onclick="iniciarEscaneoLibro()"><i class="fas fa-play"></i> <span id="scannerIniciar">Iniciar escáner</span></button>
                 <button class="btn-cancel" id="stopScannerBtn" style="display:none;" onclick="detenerEscaneoLibro()"><i class="fas fa-stop"></i> <span id="scannerDetener">Detener</span></button>
