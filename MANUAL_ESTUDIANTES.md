@@ -12,6 +12,7 @@ El **Panel de Estudiantes** es la aplicación del estudiante dentro de IntegraID
 - Ver el **menú del comedor** (lunes a viernes).
 - Consultar sus **asistencias** al comedor.
 - Ver sus **préstamos**, **reservas** e **historial** de la biblioteca.
+- Consultar el **catálogo disponible** de la biblioteca (libros y materiales como calculadoras o reglas) y buscar títulos.
 - Presentar su **credencial QR** en la fila del comedor.
 - Recibir **notificaciones** del colegio.
 - Ajustar **idioma** y **tema** de la aplicación.
@@ -89,6 +90,7 @@ Aquí consulta todo lo del comedor:
 
 Aquí consulta sus materiales:
 
+- **Catálogo disponible:** al entrar a *Mi biblioteca* verá primero el **catálogo** de la biblioteca: libros y materiales (calculadoras, reglas, etc.) que están disponibles para préstamo. Use el **buscador** para filtrar por título, autor o material; cada ítem muestra la etiqueta **Disponible (n)**, donde *n* es el número de ejemplares que hay ahora mismo.
 - **Mis préstamos activos:** los libros que tiene ahora y su fecha de vencimiento.
 - **Mis reservas:** los libros que apartó y su estado.
 - **Historial de préstamos:** todos los libros que ha llevado.
@@ -143,6 +145,9 @@ Sí. Guarde una **captura de pantalla** del QR para usarla sin conexión. (Recue
 
 **¿Quién me avisa de que tengo que devolver un libro?**
 La biblioteca revisa las **alertas** de vencimiento y envía notificaciones; usted también puede ver la fecha de vencimiento en **Mis préstamos**.
+
+**¿Cómo sé si un libro está disponible?**
+En **Mi biblioteca**, abra el **catálogo** y mire la etiqueta **Disponible (n)** de cada ítem. Si aparece agotado en el catálogo o no se muestra, no hay ejemplares libres en ese momento.
 
 **¿Los fines de semana hay menú?**
 El menú se planifica de **lunes a viernes**.

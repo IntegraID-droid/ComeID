@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manual de Casos de Uso — ComeID (Integra ID)</title>
+<title>Manual de Uso Detallado — ComeID (Integra ID)</title>
 <style>
 body{font-family:"Segoe UI",Arial,sans-serif;margin:40px auto;max-width:920px;padding:0 24px;color:#1a1a1a;line-height:1.55;font-size:15px;}
 h1{color:#17326f;border-bottom:3px solid #17326f;padding-bottom:10px;margin-top:30px;}
@@ -22,11 +22,7 @@ ul,ol{margin:8px 0 8px 6px;}
 li{margin:3px 0;}
 a{color:#2b67ff;}
 p{margin:8px 0;}
-@media print{
-  body{margin:0;padding:0;max-width:none;}
-  a{color:#1a1a1a;text-decoration:none;}
-  h1,h2,h3{page-break-after:avoid;}
-}
+@media print{body{margin:0;padding:0;max-width:none;}a{color:#1a1a1a;text-decoration:none;}h1,h2,h3{page-break-after:avoid;}}
 </style>
 </head>
 <body>
@@ -50,9 +46,7 @@ p{margin:8px 0;}
 </ul>
 <h3>1.2 ¿Cómo está construido?</h3>
 <p>La plataforma está desarrollada con <strong>Firebase</strong> (de Google):</p>
-<table><thead>
-<tr><th>Componente</th><th>Uso</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Componente</th><th>Uso</th></tr></thead><tbody>
 <tr><td><strong>Firebase Auth</strong></td><td>Inicio de sesión con correo y contraseña</td></tr>
 <tr><td><strong>Cloud Firestore</strong></td><td>Base de datos (reglas de seguridad por rol)</td></tr>
 <tr><td><strong>Firebase Hosting</strong></td><td>Publicación de las dos aplicaciones web</td></tr>
@@ -61,9 +55,7 @@ p{margin:8px 0;}
 </tbody></table>
 <p>Las dos aplicaciones son <strong>frontend</strong> (sin servidor propio): toda la lógica se ejecuta en el navegador y el acceso a los datos está protegido por las <strong>reglas de seguridad de Firestore</strong>. Esto significa que nadie puede leer ni modificar información a la que no tenga permiso, aunque lo intente directamente contra la base de datos.</p>
 <h3>1.3 Las dos aplicaciones</h3>
-<table><thead>
-<tr><th>Aplicación</th><th>URL</th><th>Usuarios</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Aplicación</th><th>URL</th><th>Usuarios</th></tr></thead><tbody>
 <tr><td><strong>Panel de Administración</strong></td><td><code>https://comeid-670b9.web.app</code></td><td>Personal del centro (admin, profesor, bibliotecario)</td></tr>
 <tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code></td><td>Estudiantes registrados</td></tr>
 </tbody></table>
@@ -71,9 +63,7 @@ p{margin:8px 0;}
 <hr>
 <h2>2. Roles y Permisos</h2>
 <p>El sistema define <strong>tres roles de gestores</strong> y un rol de <strong>estudiante</strong>. Cada rol solo ve las secciones que le corresponden.</p>
-<table><thead>
-<tr><th>Rol</th><th>¿Qué puede hacer?</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Rol</th><th>¿Qué puede hacer?</th></tr></thead><tbody>
 <tr><td><strong>admin</strong> (Administrador)</td><td>Acceso total: estudiantes, asistencia, invitados, menú, predicción IA, roles, configuración, exportar, QR.</td></tr>
 <tr><td><strong>profesor</strong> (Profesor)</td><td>Estudiantes, asistencia, historial, invitados, menú, QR, exportar. No gestiona roles ni configuración.</td></tr>
 <tr><td><strong>bibliotecario</strong></td><td>Biblioteca completa más el menú y el historial. No gestiona estudiantes.</td></tr>
@@ -220,6 +210,7 @@ p{margin:8px 0;}
 </ol>
 <ul>
 <li><strong>Resultado esperado:</strong> los estudiantes del archivo quedan registrados masivamente con sus QR generados.</li>
+<li><strong>Variación en la biblioteca:</strong> la biblioteca tiene su propio <strong>Importar Excel/CSV</strong> para <strong>libros</strong> (clave: código del ejemplar) y <strong>socios</strong> (clave: cédula), con vista previa de filas nuevas/actualizadas (ver CU-13 y CU-14).</li>
 </ul>
 <hr>
 <h2>CU-08: Controlar la asistencia al comedor (escaneo QR)</h2>
@@ -319,9 +310,11 @@ p{margin:8px 0;}
 <li>Registre título, autor, categoría, ISBN, ubicación y número de ejemplares.</li>
 <li>Pulse <strong>Guardar</strong>.</li>
 <li>Use la búsqueda para localizar libros y las acciones para editar o eliminar títulos.</li>
+<li><strong>(Alternativa masiva)</strong> Pulse <strong>Importar Excel/CSV</strong>, elija el archivo (<code>.xlsx</code>, <code>.csv</code> o <code>.txt</code>), revise la <strong>vista previa</strong> de filas y pulse <strong>Importar</strong>; el <strong>código del ejemplar</strong> es la clave: si existe se actualiza, si no se crea.</li>
 </ol>
 <ul>
 <li><strong>Resultado esperado:</strong> la biblioteca tiene su catálogo digitalizado y consultable desde el portal del estudiante.</li>
+<li><strong>Disponibilidad:</strong> el sistema muestra cuántos ejemplares hay <strong>disponibles</strong> y lo recalcula al prestar o devolver; el estudiante lo ve en su portal (etiqueta <em>Disponible (n)</em>). Los libros con todos los ejemplares prestados quedan <strong>agotados</strong> y no admiten más préstamos.</li>
 </ul>
 <hr>
 <h2>CU-14: Registrar préstamos y devoluciones (biblioteca)</h2>
@@ -333,12 +326,13 @@ p{margin:8px 0;}
 <li>En <strong>Préstamos</strong>, pulse <strong>Nuevo préstamo</strong>.</li>
 <li>Seleccione el estudiante (socio de biblioteca) y el libro del catálogo.</li>
 <li>El sistema calcula la <strong>fecha de vencimiento</strong> automáticamente.</li>
-<li>Pulse <strong>Guardar</strong>. El libro queda marcado como prestado y aparece en "Mis préstamos" del estudiante.</li>
-<li>Para la <strong>devolución</strong>, localice el préstamo activo y pulse <strong>Devolver</strong>.</li>
+<li>Pulse <strong>Guardar</strong>. El libro queda marcado como prestado, disminuye la <strong>disponibilidad</strong> y aparece en "Mis préstamos" del estudiante.</li>
+<li>Para la <strong>devolución</strong>, localice el préstamo activo y pulse <strong>Devolver</strong>. La disponibilidad del libro vuelve a aumentar.</li>
 </ol>
 <ul>
 <li><strong>Resultado esperado:</strong> trazabilidad completa de quién tiene cada libro y cuándo debe devolverlo.</li>
-<li><strong>Variación:</strong> los <strong>socios</strong> de la biblioteca se gestionan desde la sección correspondiente (pueden incluir estudiantes que usan la biblioteca aunque no pertenezcan al comedor).</li>
+<li><strong>Variación con escáner QR (recomendado):</strong> en el formulario de préstamo pulse <strong>Escanear libro</strong> y apunte al QR del ejemplar. El sistema responde con <strong>sonido de confirmación</strong>, vibración y mensaje en pantalla (verde = correcto, rojo = error). Si el libro no existe, está agotado o no es válido, se muestra el error sin generar el préstamo. Al devolver también puede escanear el QR: si el socio tiene un solo préstamo activo se devuelve en automático; si tiene varios, se elige cuál devolver.</li>
+<li><strong>Variación:</strong> los <strong>socios</strong> de la biblioteca se gestionan desde la sección correspondiente (pueden incluir estudiantes que usan la biblioteca aunque no pertenezcan al comedor), y también pueden <strong>importarse desde Excel/CSV</strong> (clave: cédula).</li>
 </ul>
 <hr>
 <h2>CU-15: Gestionar reservas de libros</h2>
@@ -496,20 +490,21 @@ p{margin:8px 0;}
 <li><strong>Resultado esperado:</strong> el estudiante sabe qué se sirve y cuántas veces ha asistido.</li>
 </ul>
 <hr>
-<h2>CU-E05: Consultar préstamos y reservas (Biblioteca)</h2>
+<h2>CU-E05: Consultar catálogo, préstamos y reservas (Biblioteca)</h2>
 <ul>
 <li><strong>Actor(es):</strong> estudiante.</li>
 <li><strong>Flujo principal:</strong></li>
 </ul>
 <ol>
 <li>Abra la sección <strong>Biblioteca</strong>.</li>
+<li>Consulte el <strong>catálogo disponible</strong> de la biblioteca (libros y materiales como calculadoras o reglas): use el <strong>buscador</strong> para filtrar y vea la etiqueta <strong>Disponible (n)</strong> con los ejemplares disponibles ahora mismo.</li>
 <li>Vea <strong>Mis préstamos activos</strong>: qué libros tiene y cuándo vencen.</li>
 <li>Vea <strong>Mis reservas</strong>: libros que apartó y su estado.</li>
 <li>Consulte el <strong>historial de préstamos</strong> realizados.</li>
 <li>Puede <strong>reservar</strong> un libro que esté prestado o agotado desde el catálogo.</li>
 </ol>
 <ul>
-<li><strong>Resultado esperado:</strong> el estudiante controla sus materiales de la biblioteca.</li>
+<li><strong>Resultado esperado:</strong> el estudiante encuentra qué hay disponible y controla sus materiales de la biblioteca.</li>
 </ul>
 <hr>
 <h2>CU-E06: Presentar su credencial QR</h2>

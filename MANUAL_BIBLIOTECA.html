@@ -32,9 +32,10 @@ p{margin:8px 0;}
 <h2>1. Introducción</h2>
 <p><strong>Bibliogest</strong> es el módulo de <strong>biblioteca</strong> de la plataforma IntegraID. Permite al personal de la biblioteca:</p>
 <ul>
-<li>Digitalizar el <strong>catálogo de libros</strong> (títulos, autores, códigos, ejemplares).</li>
-<li>Administrar los <strong>socios</strong> de la biblioteca.</li>
-<li>Registrar <strong>préstamos</strong>, <strong>devoluciones</strong> y <strong>reservas</strong>.</li>
+<li>Digitalizar el <strong>catálogo de libros</strong> (títulos, autores, códigos, ejemplares) e <strong>importarlo desde Excel o CSV</strong>.</li>
+<li>Administrar los <strong>socios</strong> de la biblioteca (también importables desde Excel o CSV).</li>
+<li>Registrar <strong>préstamos</strong>, <strong>devoluciones</strong> y <strong>reservas</strong>, con <strong>disponibilidad en tiempo real</strong> de cada título.</li>
+<li>Prestar y devolver <strong>escanenando el código QR</strong> de los ejemplares (con confirmación sonora y visual).</li>
 <li>Controlar las <strong>alertas</strong> de libros vencidos.</li>
 <li>Conocer la <strong>ubicación</strong> física de cada libro (mapa).</li>
 <li>Generar <strong>reportes</strong> y obtener <strong>recomendaciones</strong> con inteligencia artificial.</li>
@@ -78,6 +79,15 @@ p{margin:8px 0;}
 <h4>Ver, editar o eliminar</h4>
 <p>Use la lista de socios y los botones de acción de cada fila (editar / eliminar).</p>
 <blockquote>Eliminar un socio está reservado al administrador.</blockquote>
+<h4>Importar socios desde Excel/CSV</h4>
+<p>Puede cargar varios socios a la vez desde un archivo:</p>
+<ol>
+<li>Pulse <strong>Estudiantes de biblioteca</strong>.</li>
+<li>Pulse <strong>Importar Excel/CSV</strong>.</li>
+<li>Elija el archivo (<code>.xlsx</code>, <code>.csv</code> o <code>.txt</code>); cada columna debe tener nombres en español (por ejemplo <strong>Nombre</strong>, <strong>Cédula</strong>, <strong>Sección</strong>, <strong>Nivel</strong>, <strong>Tipo</strong>).</li>
+<li>Revise la <strong>vista previa</strong>: los registros nuevos se marcan <strong>NUEVO</strong> y los que ya existen por cédula <strong>ACTUALIZAR</strong>.</li>
+<li>Pulse <strong>Importar</strong>. La <strong>cédula</strong> es la clave: si el socio ya existe se actualiza; si no, se crea.</li>
+</ol>
 <h3>4.3 Catálogo de libros</h3>
 <h4>Agregar un libro</h4>
 <ol>
@@ -88,10 +98,21 @@ p{margin:8px 0;}
 </ol>
 <h4>Buscar libros</h4>
 <p>Use el buscador por <strong>título, autor, categoría o código</strong>; la lista se filtra al momento.</p>
+<h4>Importar libros desde Excel/CSV</h4>
+<p>Para cargar todo el catálogo a la vez:</p>
+<ol>
+<li>Pulse <strong>Catálogo</strong>.</li>
+<li>Pulse <strong>Importar Excel/CSV</strong>.</li>
+<li>Elija el archivo (<code>.xlsx</code>, <code>.csv</code> o <code>.txt</code>); cada columna debe tener nombres en español (por ejemplo <strong>Título</strong>, <strong>Autor</strong>, <strong>Código</strong>, <strong>Categoría</strong>, <strong>Año</strong>, <strong>Ejemplares</strong>, <strong>Estado</strong>, <strong>Estante</strong>, <strong>Sección</strong>).</li>
+<li>Revise la <strong>vista previa</strong>: las filas inválidas (sin título, código o autor, ejemplares/año incorrectos, estado desconocido) se listan para corregir; las válidas se marcan <strong>NUEVO</strong> o <strong>ACTUALIZAR</strong>.</li>
+<li>Pulse <strong>Importar</strong>. El <strong>código del ejemplar</strong> es la clave única: si el libro ya existe se actualiza; si no, se agrega.</li>
+</ol>
+<h4>Disponibilidad de los ejemplares</h4>
+<p>Cada libro muestra cuántos ejemplares hay <strong>disponibles</strong>. El número se recalcula automáticamente al <strong>prestar</strong> (disminuye) y al <strong>devolver</strong> (aumenta), y coincide con lo que el estudiante ve en su portal. Si todos los ejemplares están prestados, el libro aparece como <strong>agotado</strong> y no se puede prestar hasta que regrese uno.</p>
 <h4>Editar o eliminar</h4>
 <p>Use los botones de cada fila. Eliminar requiere confirmación.</p>
 <h4>Código QR del libro (opcional)</h4>
-<p>Algunos registros permiten generar un <strong>QR del ejemplar</strong> para agilizar el préstamo con escáner.</p>
+<p>Algunos registros permiten generar un <strong>QR del ejemplar</strong> para agilizar el préstamo con escáner. Este QR se escanea con el botón <strong>Escanear libro</strong> del formulario de préstamos, o directamente al devolver.</p>
 <h3>4.4 Préstamos</h3>
 <h4>Prestar un libro</h4>
 <ol>
@@ -101,6 +122,7 @@ p{margin:8px 0;}
 <li>El sistema calcula la <strong>fecha de vencimiento</strong> automáticamente.</li>
 <li>Pulse <strong>Guardar</strong>.</li>
 </ol>
+<blockquote><strong>Al escanear el QR del ejemplar</strong>, el sistema responde de inmediato: emite un <strong>sonido de confirmación</strong>, vibra y muestra el resultado en pantalla (verde, con el título del libro). Si el libro <strong>no existe, está agotado o no es válido</strong>, el sonido es diferente (grave) y el mensaje aparece en <strong>rojo</strong>. Si el resultado es correcto, el formulario se completa solo y la ventana se cierra sola; basta confirmar.</blockquote>
 <p>El libro pasa a <strong>prestado</strong>, disminuye la disponibilidad y aparece en <em>Mis préstamos</em> del estudiante en su portal.</p>
 <h4>Devolver un libro</h4>
 <ol>
@@ -108,6 +130,7 @@ p{margin:8px 0;}
 <li>Pulse <strong>Devolver</strong> (o <strong>Devolver ejemplar</strong> si se prestó por ejemplar).</li>
 <li>Confirme. El libro vuelve a estar disponible y el préstamo pasa al historial.</li>
 </ol>
+<blockquote>También puede <strong>devolver escaneando el QR</strong> del ejemplar: el sistema confirma con sonido y mensaje, y devuelve el libro automáticamente cuando el socio tiene un solo préstamo activo; si tiene varios, se muestran para elegir cuál devolver.</blockquote>
 <h3>4.5 Reservas</h3>
 <p>Cuando un libro está prestado o agotado, un estudiante puede <strong>apartarlo</strong>:</p>
 <ol>
@@ -160,7 +183,9 @@ p{margin:8px 0;}
 <p><strong>¿Un estudiante puede ver qué libros hay?</strong></p>
 <p>Sí; en su portal tiene la biblioteca con catálogo y reservas. Solo ve <strong>sus</strong> préstamos.</p>
 <p><strong>¿Puede el profesor gestionar la biblioteca?</strong></p>
-<p>No. La gestión completa es del <strong>bibliotecario</strong> y del <strong>admin</strong>.</p>
+<p>Sí, si tiene el rol de <strong>bibliotecario</strong> o <strong>admin</strong> puede gestionarla (al igual que los profesores con esos roles). La gestión completa es de los <strong>gestores</strong>: bibliotecario y admin.</p>
+<p><strong>¿Qué libros puede ver un estudiante en su portal?</strong></p>
+<p>El estudiante ve el <strong>catálogo disponible</strong> de la biblioteca en su portal: libros y materiales (calculadoras, reglas, etc.), con buscador y el número de ejemplares disponibles. Solo ve la información de <strong>sus</strong> préstamos.</p>
 <p><strong>¿Qué pasa si el libro no aparece en el catálogo?</strong></p>
 <p>Debe agregarse primero en <strong>Catálogo → Nuevo libro</strong>.</p>
 <p><strong>¿Cómo se entera el estudiante de un préstamo vencido?</strong></p>

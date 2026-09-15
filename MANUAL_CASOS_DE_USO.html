@@ -22,11 +22,7 @@ ul,ol{margin:8px 0 8px 6px;}
 li{margin:3px 0;}
 a{color:#2b67ff;}
 p{margin:8px 0;}
-@media print{
-  body{margin:0;padding:0;max-width:none;}
-  a{color:#1a1a1a;text-decoration:none;}
-  h1,h2,h3{page-break-after:avoid;}
-}
+@media print{body{margin:0;padding:0;max-width:none;}a{color:#1a1a1a;text-decoration:none;}h1,h2,h3{page-break-after:avoid;}}
 </style>
 </head>
 <body>
@@ -37,9 +33,7 @@ p{margin:8px 0;}
 <h2>1. Introducción</h2>
 <p>Este manual describe los casos de uso del sistema <strong>ComeID (Integra ID)</strong>, una plataforma web diseñada para la gestión integral del comedor y la biblioteca del Colegio Técnico Profesional (CTP) de Liberia, Costa Rica.</p>
 <p>El sistema consta de dos aplicaciones frontend independientes, ambas desplegadas en Firebase Hosting y conectadas a Firebase Auth + Firestore:</p>
-<table><thead>
-<tr><th>Aplicación</th><th>Ubicación</th><th>Usuario(s)</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Aplicación</th><th>Ubicación</th><th>Usuario(s)</th></tr></thead><tbody>
 <tr><td><strong>Panel de Administración</strong></td><td><code>https://comeid-670b9.web.app</code> (carpeta <code>Comeid.app/</code>)</td><td>Personal del centro educativo (admin, profesor, bibliotecario)</td></tr>
 <tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code> (carpeta <code>ComeidEstudiantes/</code>)</td><td>Estudiantes registrados</td></tr>
 </tbody></table>
@@ -109,18 +103,14 @@ p{margin:8px 0;}
 <hr>
 <h2>3. Acceso al Sistema (URLs)</h2>
 <h3>Panel de Administración</h3>
-<table><thead>
-<tr><th>Recurso</th><th>URL</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Recurso</th><th>URL</th></tr></thead><tbody>
 <tr><td>Login</td><td><code>https://comeid-670b9.web.app/login.html</code></td></tr>
 <tr><td>Panel principal</td><td><code>https://comeid-670b9.web.app/index.html</code></td></tr>
 <tr><td>Selector de apps</td><td><code>https://comeid-670b9.web.app/selector.html</code></td></tr>
 <tr><td>Biblioteca</td><td><code>https://comeid-670b9.web.app/biblioteca.html</code></td></tr>
 </tbody></table>
 <h3>Portal de Estudiantes</h3>
-<table><thead>
-<tr><th>Recurso</th><th>URL</th></tr>
-</thead><tbody>
+<table><thead><tr><th>Recurso</th><th>URL</th></tr></thead><tbody>
 <tr><td>Registro</td><td><code>https://comeid-estudiantes.web.app/registro.html</code></td></tr>
 <tr><td>Login</td><td><code>https://comeid-estudiantes.web.app/index.html</code></td></tr>
 <tr><td>Dashboard</td><td><code>https://comeid-estudiantes.web.app/dashboard.html</code></td></tr>

@@ -182,6 +182,7 @@ Si se olvida la contraseña, use **¿Olvidaste tu contraseña?** en la pantalla 
   5. Confirme la importación.
   6. Los registros exitosos se crean; los que tengan errores (cédula repetida, datos incompletos) se listan para corregir.
 - **Resultado esperado:** los estudiantes del archivo quedan registrados masivamente con sus QR generados.
+- **Variación en la biblioteca:** la biblioteca tiene su propio **Importar Excel/CSV** para **libros** (clave: código del ejemplar) y **socios** (clave: cédula), con vista previa de filas nuevas/actualizadas (ver CU-13 y CU-14).
 
 ---
 
@@ -265,7 +266,9 @@ Si se olvida la contraseña, use **¿Olvidaste tu contraseña?** en la pantalla 
   3. Registre título, autor, categoría, ISBN, ubicación y número de ejemplares.
   4. Pulse **Guardar**.
   5. Use la búsqueda para localizar libros y las acciones para editar o eliminar títulos.
+  6. **(Alternativa masiva)** Pulse **Importar Excel/CSV**, elija el archivo (`.xlsx`, `.csv` o `.txt`), revise la **vista previa** de filas y pulse **Importar**; el **código del ejemplar** es la clave: si existe se actualiza, si no se crea.
 - **Resultado esperado:** la biblioteca tiene su catálogo digitalizado y consultable desde el portal del estudiante.
+- **Disponibilidad:** el sistema muestra cuántos ejemplares hay **disponibles** y lo recalcula al prestar o devolver; el estudiante lo ve en su portal (etiqueta *Disponible (n)*). Los libros con todos los ejemplares prestados quedan **agotados** y no admiten más préstamos.
 
 ---
 
@@ -276,10 +279,11 @@ Si se olvida la contraseña, use **¿Olvidaste tu contraseña?** en la pantalla 
   1. En **Préstamos**, pulse **Nuevo préstamo**.
   2. Seleccione el estudiante (socio de biblioteca) y el libro del catálogo.
   3. El sistema calcula la **fecha de vencimiento** automáticamente.
-  4. Pulse **Guardar**. El libro queda marcado como prestado y aparece en "Mis préstamos" del estudiante.
-  5. Para la **devolución**, localice el préstamo activo y pulse **Devolver**.
+  4. Pulse **Guardar**. El libro queda marcado como prestado, disminuye la **disponibilidad** y aparece en "Mis préstamos" del estudiante.
+  5. Para la **devolución**, localice el préstamo activo y pulse **Devolver**. La disponibilidad del libro vuelve a aumentar.
 - **Resultado esperado:** trazabilidad completa de quién tiene cada libro y cuándo debe devolverlo.
-- **Variación:** los **socios** de la biblioteca se gestionan desde la sección correspondiente (pueden incluir estudiantes que usan la biblioteca aunque no pertenezcan al comedor).
+- **Variación con escáner QR (recomendado):** en el formulario de préstamo pulse **Escanear libro** y apunte al QR del ejemplar. El sistema responde con **sonido de confirmación**, vibración y mensaje en pantalla (verde = correcto, rojo = error). Si el libro no existe, está agotado o no es válido, se muestra el error sin generar el préstamo. Al devolver también puede escanear el QR: si el socio tiene un solo préstamo activo se devuelve en automático; si tiene varios, se elige cuál devolver.
+- **Variación:** los **socios** de la biblioteca se gestionan desde la sección correspondiente (pueden incluir estudiantes que usan la biblioteca aunque no pertenezcan al comedor), y también pueden **importarse desde Excel/CSV** (clave: cédula).
 
 ---
 
@@ -409,16 +413,17 @@ Si se olvida la contraseña, use **¿Olvidaste tu contraseña?** en la pantalla 
 
 ---
 
-## CU-E05: Consultar préstamos y reservas (Biblioteca)
+## CU-E05: Consultar catálogo, préstamos y reservas (Biblioteca)
 
 - **Actor(es):** estudiante.
 - **Flujo principal:**
   1. Abra la sección **Biblioteca**.
-  2. Vea **Mis préstamos activos**: qué libros tiene y cuándo vencen.
-  3. Vea **Mis reservas**: libros que apartó y su estado.
-  4. Consulte el **historial de préstamos** realizados.
-  5. Puede **reservar** un libro que esté prestado o agotado desde el catálogo.
-- **Resultado esperado:** el estudiante controla sus materiales de la biblioteca.
+  2. Consulte el **catálogo disponible** de la biblioteca (libros y materiales como calculadoras o reglas): use el **buscador** para filtrar y vea la etiqueta **Disponible (n)** con los ejemplares disponibles ahora mismo.
+  3. Vea **Mis préstamos activos**: qué libros tiene y cuándo vencen.
+  4. Vea **Mis reservas**: libros que apartó y su estado.
+  5. Consulte el **historial de préstamos** realizados.
+  6. Puede **reservar** un libro que esté prestado o agotado desde el catálogo.
+- **Resultado esperado:** el estudiante encuentra qué hay disponible y controla sus materiales de la biblioteca.
 
 ---
 
