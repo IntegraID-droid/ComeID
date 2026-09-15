@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de Uso — IntegraID (Plataforma General)</title>
+<style>
+body{font-family:"Segoe UI",Arial,sans-serif;margin:40px auto;max-width:920px;padding:0 24px;color:#1a1a1a;line-height:1.55;font-size:15px;}
+h1{color:#17326f;border-bottom:3px solid #17326f;padding-bottom:10px;margin-top:30px;}
+h2{color:#17326f;border-bottom:2px solid #d9e0f0;padding-bottom:6px;margin-top:34px;page-break-after:avoid;}
+h3{color:#2b67ff;margin-top:26px;page-break-after:avoid;}
+h4{color:#333;margin-top:18px;}
+hr{border:none;border-top:2px solid #d9e0f0;margin:24px 0;}
+table{border-collapse:collapse;width:100%;margin:14px 0;page-break-inside:avoid;}
+th,td{border:1px solid #c4cbd8;padding:8px 10px;font-size:13.5px;text-align:left;vertical-align:top;}
+th{background:#17326f;color:#fff;}
+tbody tr:nth-child(even){background:#f2f4f8;}
+pre,code{background:#f0f2f6;padding:2px 6px;border-radius:4px;font-family:Consolas,"Courier New",monospace;font-size:13px;}
+pre{padding:12px;overflow-x:auto;}
+blockquote{border-left:4px solid #2b67ff;margin:12px 0;padding:8px 16px;background:#f2f4f8;color:#333;}
+ul,ol{margin:8px 0 8px 6px;}
+li{margin:3px 0;}
+a{color:#2b67ff;}
+p{margin:8px 0;}
+@media print{body{margin:0;padding:0;max-width:none;}a{color:#1a1a1a;text-decoration:none;}h1,h2,h3{page-break-after:avoid;}}
+</style>
+</head>
+<body>
+<h1>Manual de Uso — IntegraID (Plataforma General)</h1>
+<p><strong>Integra ID</strong> es la plataforma integral del <strong>CTP de Liberia, Guanacaste — Costa Rica</strong> para la gestión digital del comedor estudiantil y de la biblioteca.</p>
+<hr>
+<h2>1. ¿Qué es IntegraID?</h2>
+<p>IntegraID es un <strong>sistema único</strong> que reúne, en un solo inicio de sesión y una sola base de datos, todas las herramientas digitales del centro educativo relacionadas con el comedor y la biblioteca. Se compone de <strong>tres módulos</strong>:</p>
+<table><thead><tr><th>Módulo</th><th>¿Qué hace?</th><th>Manual específico</th></tr></thead><tbody>
+<tr><td><strong>ComeID</strong></td><td>Gestión del comedor estudiantil</td><td><code>Manual de ComeID</code></td></tr>
+<tr><td><strong>Bibliogest</strong></td><td>Gestión de la biblioteca</td><td><code>Manual de Bibliogest</code></td></tr>
+<tr><td><strong>Portal de Estudiantes</strong></td><td>Auto-servicio del estudiante</td><td><code>Manual del Panel de Estudiantes</code></td></tr>
+</tbody></table>
+<p>Las tres partes <strong>comparten los mismos datos</strong>: si el personal registra a un estudiante en el comedor, ese estudiante aparece en la biblioteca y puede entrar a su portal. No hay que cargar datos dos veces.</p>
+<hr>
+<h2>2. Componentes de la plataforma</h2>
+<h3>2.1 ComeID — Módulo del comedor</h3>
+<p>Permite al personal administrar:</p>
+<ul>
+<li>El <strong>registro de estudiantes</strong> y sus <strong>cuentas de acceso</strong> (con correo y contraseña).</li>
+<li>El <strong>control de asistencia diaria</strong> por <strong>escaneo de código QR</strong>.</li>
+<li>El <strong>menú semanal</strong> (lunes a viernes), con ayuda de <strong>inteligencia artificial</strong>.</li>
+<li>Los <strong>invitados externos</strong> que consumen en el comedor.</li>
+<li>Los <strong>historiales</strong> de consumo por día y por estudiante.</li>
+<li>La <strong>predicción de demanda</strong> para planificar compras.</li>
+<li>La exportación de <strong>reportes en Excel y PDF</strong>.</li>
+</ul>
+<h3>2.2 Bibliogest — Módulo de la biblioteca</h3>
+<p>Permite al bibliotecario administrar:</p>
+<ul>
+<li>El <strong>catálogo de libros</strong> (título, autor, categoría, código, ejemplares).</li>
+<li>Los <strong>socios de la biblioteca</strong> (estudiantes que la usan).</li>
+<li>Los <strong>préstamos</strong>, <strong>devoluciones</strong> y <strong>reservas</strong> de libros.</li>
+<li>Las <strong>alertas</strong> de préstamos vencidos.</li>
+<li>La <strong>ubicación</strong> de los materiales (mapa de la biblioteca).</li>
+<li><strong>Reportes</strong> y <strong>recomendaciones por inteligencia artificial</strong>.</li>
+</ul>
+<blockquote>IntegraID permite que la biblioteca funcione de forma <strong>independiente</strong> del comedor: un estudiante puede comer en el comedor o no, pero aun así usar la biblioteca.</blockquote>
+<h3>2.3 Portal de Estudiantes</h3>
+<p>Es la aplicación para el <strong>estudiante</strong>:</p>
+<ul>
+<li>Ver el <strong>menú del día</strong> y su propia <strong>asistencia</strong> al comedor.</li>
+<li>Ver sus <strong>préstamos</strong> y <strong>reservas</strong> en la biblioteca.</li>
+<li>Presentar su <strong>credencial QR</strong>.</li>
+<li>Recibir <strong>notificaciones</strong> del colegio.</li>
+<li><strong>Registrarse</strong> por primera vez vinculando su cédula y su nombre.</li>
+</ul>
+<hr>
+<h2>3. Cómo acceder a IntegraID</h2>
+<h3>3.1 Direcciones (URLs)</h3>
+<table><thead><tr><th>Aplicación</th><th>Dirección</th><th>¿Quién entra?</th></tr></thead><tbody>
+<tr><td>Panel del personal (ComeID + Bibliogest)</td><td><code>https://comeid-670b9.web.app</code></td><td>Administradores, profesores, bibliotecarios</td></tr>
+<tr><td>Portal de estudiantes</td><td><code>https://comeid-estudiantes.web.app</code></td><td>Estudiantes</td></tr>
+</tbody></table>
+<h3>3.2 Navegador recomendado</h3>
+<p>Google Chrome, Microsoft Edge o Firefox actualizados, en computadora o teléfono. Se necesita <strong>cámara</strong> para el escaneo de QR.</p>
+<h3>3.3 Iniciar sesión</h3>
+<ol>
+<li>Abra la dirección del panel.</li>
+<li>Escriba su <strong>correo</strong> y su <strong>contraseña</strong>.</li>
+<li>Pulse <strong>Iniciar sesión</strong>.</li>
+<li>Si olvidó su contraseña, use <strong>¿Olvidaste tu contraseña?</strong> y siga las instrucciones que llegan a su correo.</li>
+</ol>
+<h3>3.4 Elegir el sistema (ComeID o Bibliogest)</h3>
+<p>Al entrar al panel verá una pantalla de <strong>selección de sistema</strong> con dos opciones:</p>
+<ul>
+<li><strong>ComeID (Comedor)</strong> → abre el panel de gestión del comedor.</li>
+<li><strong>Bibliogest (Biblioteca)</strong> → abre el panel de gestión de la biblioteca.</li>
+</ul>
+<p>También puede cambiar de un sistema al otro desde el menú lateral (opción <strong>Selector de app</strong>) sin cerrar la sesión.</p>
+<hr>
+<h2>4. Roles y permisos en toda la plataforma</h2>
+<table><thead><tr><th>Rol</th><th>ComeID</th><th>Bibliogest</th><th>Portal estudiantes</th></tr></thead><tbody>
+<tr><td><strong>Admin</strong></td><td>Todo</td><td>Todo</td><td>—</td></tr>
+<tr><td><strong>Profesor</strong></td><td>Comedor (no roles ni configuración)</td><td>Solo lectura de catálogo</td><td>—</td></tr>
+<tr><td><strong>Bibliotecario</strong></td><td>Solo lectura de menú e historial</td><td>Todo</td><td>—</td></tr>
+<tr><td><strong>Estudiante</strong></td><td>—</td><td>—</td><td>Su información personal</td></tr>
+</tbody></table>
+<p>El rol lo asigna <strong>únicamente el administrador</strong> desde la sección <em>Gestión de Usuarios y Roles</em> (ver manual de ComeID).</p>
+<hr>
+<h2>5. Lo que se puede hacer en cada módulo (resumen)</h2>
+<h3>En ComeID (comedor)</h3>
+<p>Registrar y matricular estudiantes → generar QR → escanear su asistencia cada día → organizar invitados → planificar el menú de la semana → predecir cuántos comerán → exportar reportes.</p>
+<h3>En Bibliogest (biblioteca)</h3>
+<p>Registrar libros → dar de alta socios → prestar y devolver → apartar reservas → avisar de vencidos → ubicar libros → recomendar lecturas con IA → reportar.</p>
+<h3>En el Portal de Estudiantes</h3>
+<p>Registrarse con su cédula → ver menú y asistencia → ver préstamos y reservas → mostrar su QR → leer notificaciones.</p>
+<hr>
+<h2>6. Seguridad de la plataforma</h2>
+<ul>
+<li><strong>Acceso por roles:</strong> nadie puede hacer nada que su rol no permita; los estudiantes solo ven su propia información.</li>
+<li><strong>Base de datos protegida:</strong> todas las lecturas y escrituras pasan por reglas de seguridad de Firestore, verificadas del lado del servidor de Firebase.</li>
+<li><strong>Cabeceras de seguridad web (CSP):</strong> restringen qué contiene y de dónde se cargan los recursos; sin ejecución de código dinámico.</li>
+<li><strong>Sin claves privadas en el código:</strong> las claves de servicios (por ejemplo, la de la inteligencia artificial) no están escritas en el código fuente.</li>
+<li><strong>Repositorio privado:</strong> el código se mantiene en un repositorio privado de GitHub con <code>.gitignore</code> para credenciales.</li>
+</ul>
+<hr>
+<h2>7. Soporte y ayuda</h2>
+<ul>
+<li>En cada panel existe el botón de <strong>Ayuda</strong> (ícono de interrogación) que muestra los pasos principales.</li>
+<li>En caso de dudas o errores, consulte el manual específico del módulo o contacte al <strong>administrador del sistema</strong>.</li>
+</ul>
+<hr>
+<h2>8. Anexo — Ficha técnica rápida</h2>
+<table><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>
+<tr><td>Nombre comercial</td><td>Integra ID</td></tr>
+<tr><td>Módulo de comedor</td><td>ComeID</td></tr>
+<tr><td>Módulo de biblioteca</td><td>Bibliogest</td></tr>
+<tr><td>Portal de estudiantes</td><td>ComeID Estudiantes</td></tr>
+<tr><td>Tecnología</td><td>Firebase (Auth, Firestore, Hosting) + Google Gemini (IA)</td></tr>
+<tr><td>Panel del personal</td><td><code>https://comeid-670b9.web.app</code></td></tr>
+<tr><td>Portal de estudiantes</td><td><code>https://comeid-estudiantes.web.app</code></td></tr>
+<tr><td>Idiomas de la interfaz</td><td>Español, inglés, portugués, francés, alemán</td></tr>
+<tr><td>Menú del comedor</td><td>Lunes a viernes</td></tr>
+</tbody></table>
+</body>
+</html>
