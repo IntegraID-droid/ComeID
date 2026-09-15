@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de Casos de Uso — ComeID (Integra ID)</title>
+<style>
+body{font-family:"Segoe UI",Arial,sans-serif;margin:40px auto;max-width:920px;padding:0 24px;color:#1a1a1a;line-height:1.55;font-size:15px;}
+h1{color:#17326f;border-bottom:3px solid #17326f;padding-bottom:10px;margin-top:30px;}
+h2{color:#17326f;border-bottom:2px solid #d9e0f0;padding-bottom:6px;margin-top:34px;page-break-after:avoid;}
+h3{color:#2b67ff;margin-top:26px;page-break-after:avoid;}
+h4{color:#333;margin-top:18px;}
+hr{border:none;border-top:2px solid #d9e0f0;margin:24px 0;}
+table{border-collapse:collapse;width:100%;margin:14px 0;page-break-inside:avoid;}
+th,td{border:1px solid #c4cbd8;padding:8px 10px;font-size:13.5px;text-align:left;vertical-align:top;}
+th{background:#17326f;color:#fff;}
+tbody tr:nth-child(even){background:#f2f4f8;}
+pre,code{background:#f0f2f6;padding:2px 6px;border-radius:4px;font-family:Consolas,"Courier New",monospace;font-size:13px;}
+pre{padding:12px;overflow-x:auto;}
+blockquote{border-left:4px solid #2b67ff;margin:12px 0;padding:8px 16px;background:#f2f4f8;color:#333;}
+ul,ol{margin:8px 0 8px 6px;}
+li{margin:3px 0;}
+a{color:#2b67ff;}
+p{margin:8px 0;}
+@media print{
+  body{margin:0;padding:0;max-width:none;}
+  a{color:#1a1a1a;text-decoration:none;}
+  h1,h2,h3{page-break-after:avoid;}
+}
+</style>
+</head>
+<body>
+<h1>Manual de Casos de Uso — ComeID (Integra ID)</h1>
+<p>Sistema integrado de gestión de comedor estudiantil y biblioteca  </p>
+<p><strong>CTP de Liberia, Guanacaste — Costa Rica</strong></p>
+<hr>
+<h2>1. Introducción</h2>
+<p>Este manual describe los casos de uso del sistema <strong>ComeID (Integra ID)</strong>, una plataforma web diseñada para la gestión integral del comedor y la biblioteca del Colegio Técnico Profesional (CTP) de Liberia, Costa Rica.</p>
+<p>El sistema consta de dos aplicaciones frontend independientes, ambas desplegadas en Firebase Hosting y conectadas a Firebase Auth + Firestore:</p>
+<table><thead>
+<tr><th>Aplicación</th><th>Ubicación</th><th>Usuario(s)</th></tr>
+</thead><tbody>
+<tr><td><strong>Panel de Administración</strong></td><td><code>https://comeid-670b9.web.app</code> (carpeta <code>Comeid.app/</code>)</td><td>Personal del centro educativo (admin, profesor, bibliotecario)</td></tr>
+<tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code> (carpeta <code>ComeidEstudiantes/</code>)</td><td>Estudiantes registrados</td></tr>
+</tbody></table>
+<p>Ambas aplicaciones son de arquitectura <strong>serverless</strong> (sin lógica del lado del servidor); toda la lógica de negocio y el control de acceso se ejecutan en el cliente y se protegen mediante reglas de Firestore.</p>
+<h3>Funcionalidades principales</h3>
+<ul>
+<li>Registro y administración de estudiantes con cuentas de acceso</li>
+<li>Control de asistencia al comedor mediante escaneo de códigos QR</li>
+<li>Planificación semanal del menú (lunes a viernes)</li>
+<li>Gestión de invitados externos</li>
+<li>Sistema de biblioteca: catálogo de libros, préstamos, devoluciones y reservas</li>
+<li>Análisis predictivo de demanda con inteligencia artificial (Gemini)</li>
+<li>Exportación de reportes a Excel y PDF</li>
+<li>Gestión de usuarios y roles con control de acceso basado en permisos</li>
+<li>Portal de auto-servicio para estudiantes</li>
+</ul>
+<hr>
+<h2>2. Roles del Sistema</h2>
+<p>El sistema define cuatro roles que determinan qué acciones puede realizar cada usuario:</p>
+<h3>2.1 Admin (Administrador)</h3>
+<ul>
+<li>Acceso total a todas las secciones del Panel de Administración</li>
+<li>Crear, editar y eliminar estudiantes y sus cuentas de acceso</li>
+<li>Importar estudiantes masivamente desde archivos CSV</li>
+<li>Generar credenciales QR y escanear códigos de asistencia</li>
+<li>Gestionar usuarios y roles (promover entre admin/profesor/estudiante)</li>
+<li>Configurar el menú semanal</li>
+<li>Usar la inteligencia artificial para análisis y predicciones</li>
+<li>Registrar y eliminar invitados externos</li>
+<li>Exportar datos a Excel y PDF</li>
+<li>Acceder a la configuración del sistema</li>
+<li>Limpiar asistencias del día</li>
+<li>Eliminar historial de asistencias</li>
+</ul>
+<h3>2.2 Profesor</h3>
+<ul>
+<li>Ver el dashboard con tarjetas resumen (becados, pagan, total, asistencia del día)</li>
+<li>Listar, buscar, crear y editar estudiantes</li>
+<li>Generar y compartir credenciales QR</li>
+<li>Escanear códigos QR para registrar asistencia</li>
+<li>Ver historial diario de asistencias</li>
+<li>Ver historial por estudiante</li>
+<li>Registrar invitados externos</li>
+<li>Configurar el menú semanal</li>
+<li>Exportar reportes a Excel y PDF</li>
+</ul>
+<h3>2.3 Bibliotecario</h3>
+<ul>
+<li>Ver el dashboard</li>
+<li>Ver historial diario de asistencias</li>
+<li>Escanear códigos QR</li>
+<li>Configurar el menú semanal</li>
+<li>Gestionar el catálogo de libros (agregar, editar, cambiar estado)</li>
+<li>Registrar préstamos, devoluciones y reservas</li>
+<li>Ver reportes de biblioteca</li>
+</ul>
+<h3>2.4 Estudiante</h3>
+<ul>
+<li>Acceder al Portal de Estudiantes</li>
+<li>Ver el menú semanal y su historial de asistencia</li>
+<li>Ver sus préstamos activos, reservas e historial de biblioteca</li>
+<li>Consultar su código QR personal</li>
+<li>Recibir notificaciones del sistema</li>
+<li>Gestionar su perfil y configuración (idioma, tema)</li>
+</ul>
+<blockquote><strong>Nota de seguridad:</strong> El sistema valida los roles en Firestore usando las funciones <code>esGestor()</code>, <code>esAdmin()</code> y <code>esEstudiante()</code>. Un estudiante solo puede leer su propia información. Las operaciones de escritura sobre datos de otros estudiantes requieren privilegios de gestor.</blockquote>
+<hr>
+<h2>3. Acceso al Sistema (URLs)</h2>
+<h3>Panel de Administración</h3>
+<table><thead>
+<tr><th>Recurso</th><th>URL</th></tr>
+</thead><tbody>
+<tr><td>Login</td><td><code>https://comeid-670b9.web.app/login.html</code></td></tr>
+<tr><td>Panel principal</td><td><code>https://comeid-670b9.web.app/index.html</code></td></tr>
+<tr><td>Selector de apps</td><td><code>https://comeid-670b9.web.app/selector.html</code></td></tr>
+<tr><td>Biblioteca</td><td><code>https://comeid-670b9.web.app/biblioteca.html</code></td></tr>
+</tbody></table>
+<h3>Portal de Estudiantes</h3>
+<table><thead>
+<tr><th>Recurso</th><th>URL</th></tr>
+</thead><tbody>
+<tr><td>Registro</td><td><code>https://comeid-estudiantes.web.app/registro.html</code></td></tr>
+<tr><td>Login</td><td><code>https://comeid-estudiantes.web.app/index.html</code></td></tr>
+<tr><td>Dashboard</td><td><code>https://comeid-estudiantes.web.app/dashboard.html</code></td></tr>
+<tr><td>Comedor</td><td><code>https://comeid-estudiantes.web.app/comedor.html</code></td></tr>
+<tr><td>Biblioteca</td><td><code>https://comeid-estudiantes.web.app/biblioteca.html</code></td></tr>
+<tr><td>QR personal</td><td><code>https://comeid-estudiantes.web.app/qr.html</code></td></tr>
+<tr><td>Notificaciones</td><td><code>https://comeid-estudiantes.web.app/notificaciones.html</code></td></tr>
+<tr><td>Perfil</td><td><code>https://comeid-estudiantes.web.app/perfil.html</code></td></tr>
+<tr><td>Configuración</td><td><code>https://comeid-estudiantes.web.app/configuracion.html</code></td></tr>
+</tbody></table>
+<blockquote><strong>Acceso:</strong> Se utiliza autenticación por correo electrónico y contraseña a través de Firebase Auth. No hay acceso sin credenciales válidas.</blockquote>
+<hr>
+<h2>4. Casos de Uso del Panel de Administración</h2>
+<h3>CU-01: Iniciar sesión en el Panel de Administración</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-01: Iniciar sesión</li>
+<li><strong>Actor(es):</strong> Admin, Profesor, Bibliotecario</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener una cuenta creada con correo y contraseña válidos. El usuario debe estar registrado en la colección <code>usuarios</code> de Firestore con un rol asignado (admin, profesor o bibliotecario).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a <code>https://comeid-670b9.web.app/login.html</code>.</li>
+<li>Ingresa su correo electrónico y contraseña en el formulario de inicio de sesión.</li>
+<li>Presiona el botón "Iniciar sesión".</li>
+<li>El sistema valida las credenciales contra Firebase Auth.</li>
+<li>El sistema consulta la colección <code>usuarios</code> para obtener el rol del usuario.</li>
+<li>Se redirige al usuario al panel principal (<code>index.html</code>), donde se muestra el sidebar con las secciones disponibles según su rol.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El usuario accede al panel y ve el sidebar con las secciones permitidas para su rol. El Dashboard se carga automáticamente mostrando las tarjetas de resumen.</li>
+</ul>
+<h3>CU-02: Registrar un estudiante con cuenta de acceso</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-02: Registrar estudiante con cuenta</li>
+<li><strong>Actor(es):</strong> Admin, Profesor</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin o profesor y haber iniciado sesión.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Estudiantes" desde el sidebar.</li>
+<li>Presiona el botón "Agregar" (ícono de usuario+).</li>
+<li>Se abre el formulario de registro con los campos: nombre, sección, cédula, nivel (7mo a 12mo), tipo (Becado o Paga) y foto (opcional).</li>
+<li>Completa los campos obligatorios: nombre, sección, cédula y nivel.</li>
+<li>Para crear la cuenta de acceso del estudiante, ingresa un correo electrónico y una contraseña (mínimo 6 caracteres) en los campos correspondientes. Si se dejan vacíos, el estudiante podrá registrarse por sí mismo desde el Portal de Estudiantes.</li>
+<li>Opcionalmente, agrega una foto del estudiante (se redimensiona automáticamente a 200px).</li>
+<li>Presiona "Guardar".</li>
+<li>El sistema verifica que la cédula no esté duplicada.</li>
+<li>Si se proporcionaron correo y contraseña, el sistema crea la cuenta en Firebase Auth mediante el endpoint público <code>signUp</code> (sin cerrar la sesión del admin).</li>
+<li>El sistema crea el documento del estudiante en la colección <code>estudiantes</code> y, si aplica, el perfil en la colección <code>usuarios</code> con rol "estudiante".</li>
+<li>Se genera automáticamente el contenido del código QR con los datos del estudiante.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante aparece en la lista de estudiantes con su nombre, sección, nivel, tipo y cédula. Si se creó cuenta, el estudiante puede iniciar sesión en el Portal de Estudiantes.</li>
+</ul>
+<h3>CU-03: Importar estudiantes masivamente desde CSV</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-03: Importar estudiantes (CSV)</li>
+<li><strong>Actor(es):</strong> Admin</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin. Debe contar con un archivo CSV preparado.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Estudiantes".</li>
+<li>Presiona el botón "Importar CSV".</li>
+<li>Se abre la pantalla de importación con instrucciones sobre el formato requerido.</li>
+<li>El usuario selecciona un archivo CSV con las columnas: <code>nombre</code>, <code>cedula</code>, <code>seccion</code>, <code>nivel</code>, <code>tipo</code> (Becado/Paga). Columnas opcionales: <code>correo</code>, <code>clave</code>.</li>
+<li>El sistema muestra una vista previa con el número de estudiantes válidos encontrados y los errores detectados (filas sin nombre o cédula).</li>
+<li>El usuario presiona "Importar".</li>
+<li>El sistema importa los estudiantes uno por uno, mostrando una barra de progreso con el porcentaje completado.</li>
+<li>Si se proporcionaron correo y clave para un estudiante, se crea su cuenta de Firebase Auth automáticamente.</li>
+<li>Al finalizar, se muestra el resumen: éxitos y fallos.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> Los estudiantes válidos se agregan a la colección <code>estudiantes</code>. La lista de estudiantes se actualiza automáticamente.</li>
+</ul>
+<h3>CU-04: Escanear código QR para registrar asistencia</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-04: Escanear QR de asistencia</li>
+<li><strong>Actor(es):</strong> Admin, Profesor, Bibliotecario</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener una de las tres primeras secciones abiertas. El dispositivo debe tener cámara disponible. Los estudiantes deben tener sus credenciales QR generadas.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario presiona el ícono de escáner o accede a la función QR/Escáner desde el sidebar.</li>
+<li>Se abre el modal del escáner con un botón "Iniciar cámara".</li>
+<li>El usuario presiona "Iniciar cámara". El sistema solicita permiso de acceso a la cámara.</li>
+<li>Se activa la cámara trasera del dispositivo y se comienza a escanear códigos QR automáticamente.</li>
+<li>Al detectar un código QR, el sistema extrae la cédula del estudiante del contenido del QR (formato: <code>nombre|cedula|seccion|nivel|tipo</code>).</li>
+<li>El sistema busca al estudiante en la lista cargada.</li>
+<li>Si lo encuentra:</li>
+</ol>
+<ul>
+<li>Verifica si ya fue registrado hoy (anti-duplicados con ventana de 5 segundos).</li>
+<li>Si no estaba registrado, crea un registro en la colección <code>asistencias</code> con fecha, hora, nombre, sección y tipo del estudiante.</li>
+<li>Muestra el nombre del estudiante, su foto y si es becado (sin cobro) o de pago (monto cobrado).</li>
+<li>Reproduce un sonido de confirmación ("beep" doble) y vibra el dispositivo.</li>
+</ul>
+<ol>
+<li>Si es un duplicado del mismo día, muestra "Ya registrado hoy" con sonido de advertencia.</li>
+<li>Si no se encuentra el estudiante, muestra un error con sonido de alerta.</li>
+<li>La lista del día se actualiza en tiempo real dentro del modal del escáner.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> La asistencia del estudiante queda registrada en Firestore con su cédula, fecha, hora y tipo. El total de asistentes del día se incrementa.</li>
+</ul>
+<h3>CU-05: Registrar invitados externos</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-05: Agregar invitado externo</li>
+<li><strong>Actor(es):</strong> Admin, Profesor</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin o profesor.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Invitados" desde el sidebar.</li>
+<li>Se muestra el formulario de registro de invitados con los campos: nombre (obligatorio), cédula (opcional) y raciones (mínimo 1).</li>
+<li>El usuario ingresa el nombre del invitado.</li>
+<li>Opcionalmente, ingresa la cédula y ajusta el número de raciones.</li>
+<li>Presiona "Agregar".</li>
+<li>El sistema guarda el registro en la colección <code>invitados</code> con la fecha actual, el nombre del gestor que lo registró y la marca de tiempo.</li>
+<li>Se actualiza la lista de invitados del día mostrando el total de personas y raciones.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El invitado aparece en la lista del día. Se actualizan los contadores de personas y raciones. Los invitados se resetean automáticamente al día siguiente.</li>
+</ul>
+<h3>CU-06: Configurar el menú semanal</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-06: Configurar menú semanal</li>
+<li><strong>Actor(es):</strong> Admin, Profesor, Bibliotecario</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener una sesión activa.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Menú Semanal" desde el sidebar.</li>
+<li>Se muestra una cuadrícula con los cinco días de la semana (lunes a viernes), cada uno con dos campos: desayuno y almuerzo.</li>
+<li>El día actual se resalta con un borde azul y una etiqueta "Hoy".</li>
+<li>Solo usuarios con rol de admin o profesor pueden editar los campos. Los bibliotecarios ven el menú en modo de solo lectura.</li>
+<li>El usuario ingresa los platillos para cada día y comida.</li>
+<li>Presiona "Guardar menú".</li>
+<li>El sistema guarda el plan en Firestore (documento <code>configuracion/menu</code>) y en localStorage como respaldo offline.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El menú semanal queda guardado en Firestore. El Portal de Estudiantes puede consultarlo. La caché local permite ver el menú sin conexión.</li>
+</ul>
+<h3>CU-07: Usar la inteligencia artificial para analizar la asistencia</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-07: Consultar IA del comedor</li>
+<li><strong>Actor(es):</strong> Admin</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin. Debe haber datos históricos de asistencia en el sistema (mínimo recomendado: 3 días).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Predicción" desde el sidebar.</li>
+<li>El sistema carga automáticamente los datos de asistencia de los últimos 28 días, el inventario de sobrantes y la lista de estudiantes.</li>
+<li>Se muestra una predicción local con la asistencia estimada para mañana y las raciones sugeridas.</li>
+<li>Se generan recomendaciones y análisis de desperdicio.</li>
+<li>Si hay una clave de API de Gemini configurada, el sistema envía los datos a Gemini para obtener recomendaciones detalladas en lenguaje natural.</li>
+<li>El usuario puede hacer preguntas en el chat de IA como: "¿Cuántos comieron esta semana?", "¿Qué día hay más asistencia?", "¿Cuántas raciones preparar mañana?"</li>
+<li>La IA responde con datos reales del sistema, analizando patrones, tendencias y comparaciones.</li>
+<li>Se aplica un límite de 60 consultas diarias a Gemini.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El admin obtiene análisis, predicciones y recomendaciones para la toma de decisiones sobre el comedor.</li>
+</ul>
+<h3>CU-08: Generar credencial QR de un estudiante</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-08: Generar credencial QR</li>
+<li><strong>Actor(es):</strong> Admin, Profesor</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin o profesor. El estudiante debe estar registrado en el sistema.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario accede a la función QR desde el sidebar o desde la lista de estudiantes.</li>
+<li>Se abre el modal de QR con un campo para ingresar la cédula.</li>
+<li>El usuario ingresa la cédula del estudiante y presiona "Generar".</li>
+<li>El sistema busca al estudiante por cédula.</li>
+<li>Se genera una credencial digital en formato tarjeta vertical (600×900px) con:</li>
+</ol>
+<ul>
+<li>Código QR con los datos del estudiante (nombre, cédula, sección, nivel, tipo).</li>
+<li>Foto del estudiante (si tiene; si no, se muestra la inicial del nombre).</li>
+<li>Logo de ComeID.</li>
+<li>Nombre completo, sección, nivel y tipo de estudiante.</li>
+</ul>
+<ol>
+<li>El sistema marca el QR como "generado" en Firestore con la fecha actual.</li>
+<li>Se muestran opciones para: descargar como PNG, descargar como PDF (tarjeta 60×90mm), imprimir, compartir por WhatsApp o correo.</li>
+<li>Se puede cambiar la foto arrastrando una imagen sobre la credencial o usando el botón "Cambiar foto".</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> Se genera una credencial digital lista para imprimir o compartir. El estudiante puede usarla para el escaneo de asistencia.</li>
+</ul>
+<h3>CU-09: Ver historial de asistencias por estudiante</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-09: Consultar historial por estudiante</li>
+<li><strong>Actor(es):</strong> Admin, Profesor</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin o profesor. Debe haber datos de asistencia en el sistema.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Historial por Estudiante" desde el sidebar.</li>
+<li>Se muestra un campo de búsqueda donde el usuario escribe el nombre o la cédula del estudiante.</li>
+<li>A medida que escribe, se muestran las coincidencias (máximo 8).</li>
+<li>El usuario selecciona el estudiante de la lista.</li>
+<li>Se establece un rango de fechas por defecto (desde la primera asistencia hasta hoy).</li>
+<li>El usuario puede ajustar las fechas "Desde" y "Hasta".</li>
+<li>El sistema muestra: días asistidos, días ausentes, días que el comedor operó, y cantidad total de comidas.</li>
+<li>Se despliega la lista detallada de cada día que el estudiante asistió.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El usuario obtiene un resumen completo del historial de asistencia del estudiante seleccionado, con estadísticas y detalle diario.</li>
+</ul>
+<h3>CU-10: Exportar asistencias a Excel o PDF</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-10: Exportar reporte de asistencias</li>
+<li><strong>Actor(es):</strong> Admin, Profesor</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin o profesor. Debe haber asistencias registradas en la fecha consultada.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario navega a la sección "Historial" o está en el escáner.</li>
+<li>Selecciona la fecha que desea exportar.</li>
+<li>Presiona el botón "Excel" o "PDF".</li>
+<li><strong>Para Excel:</strong> El sistema genera un archivo <code>.xlsx</code> con: encabezado del instituto, fecha, ganancia del día, total atendidos, pagantes, becados, y una tabla con Hora, Nombre, Sección, Nivel y Tipo de cada asistencia. Se descarga automáticamente.</li>
+<li><strong>Para PDF:</strong> El sistema genera un archivo <code>.pdf</code> con la misma información, con tabla formateada y colores institucionales.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> Se descarga un archivo con el reporte completo de asistencias de la fecha seleccionada, incluyendo la ganancia total del día.</li>
+</ul>
+<h3>CU-11: Gestionar usuarios y roles</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-11: Administrar roles de usuario</li>
+<li><strong>Actor(es):</strong> Admin</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener rol de admin.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El usuario accede a "Gestión de Usuarios y Roles" desde el sidebar.</li>
+<li>El sistema carga la lista de todos los usuarios de la colección <code>usuarios</code>.</li>
+<li>Se muestra cada usuario con su nombre, correo, el rol actual y un selector desplegable.</li>
+<li>El usuario cambia el rol de un usuario seleccionando una opción: Admin, Profesor o Estudiante.</li>
+<li>Presiona "Guardar cambios".</li>
+<li>El sistema actualiza el campo <code>rol</code> en el documento del usuario en Firestore.</li>
+<li>Si el admin cambió su propio rol, se actualiza la sesión actual.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El rol del usuario se actualiza inmediatamente. Los permisos del sidebar se ajustan según el nuevo rol.</li>
+</ul>
+<h3>CU-12: Ver dashboard con resumen del día</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-12: Consultar dashboard</li>
+<li><strong>Actor(es):</strong> Admin, Profesor, Bibliotecario</li>
+<li><strong>Precondiciones:</strong> El usuario debe tener una sesión activa.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Al iniciar sesión, se carga automáticamente el Dashboard.</li>
+<li>Se muestran tarjetas de resumen: becados, pagan, total de estudiantes, y cuántos comieron hoy.</li>
+<li>Se muestra la sección de "Ganancias del Día": ganancia bruta (estudiantes de pago × precio), cantidad de estudiantes que pagan, y número de invitados con sus raciones.</li>
+<li>Se muestran dos gráficas: ganancias de los últimos 7 días (línea) y asistencias de hoy por nivel (barras).</li>
+<li>El admin puede presionar "Limpiar Asistencias del Día" para eliminar todas las asistencias registradas (solo admin).</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El usuario tiene una vista general del estado actual del comedor con datos en tiempo real.</li>
+</ul>
+<hr>
+<h2>5. Casos de Uso del Portal de Estudiantes</h2>
+<h3>CU-E01: Registrarse en el Portal de Estudiantes</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-E01: Auto-registro de estudiante</li>
+<li><strong>Actor(es):</strong> Estudiante</li>
+<li><strong>Precondiciones:</strong> El estudiante debe estar registrado previamente en la colección <code>estudiantes</code> del Panel de Administración por un administrador o profesor, con su cédula, nombre y datos completos.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El estudiante navega a <code>https://comeid-estudiantes.web.app/registro.html</code>.</li>
+<li>Completa el formulario con: cédula (9 dígitos, sin guiones), nombre completo, correo electrónico, contraseña (mínimo 6 caracteres) y confirmación de contraseña.</li>
+<li>Presiona "Registrarse".</li>
+<li>El sistema valida que la cédula tenga exactamente 9 dígitos.</li>
+<li>El sistema crea la cuenta en Firebase Auth.</li>
+<li>Crea el perfil del usuario en la colección <code>usuarios</code> con rol "estudiante".</li>
+<li>Busca en la colección <code>estudiantes</code> un registro que coincida con la cédula y el nombre ingresados (normalizado).</li>
+<li>Si el registro ya tiene un correo asignado, valida que coincida con el ingresado.</li>
+<li>Si el registro no tiene correo asignado, valida que el correo sea institucional (<code>@ctpliberia.ed.cr</code>).</li>
+<li>Si todo es correcto, vincula la cuenta al registro del estudiante actualizando <code>uid</code>, <code>correo</code> en <code>estudiantes</code> y <code>estudiantesId</code> en <code>usuarios</code>.</li>
+<li>Se redirige al estudiante al dashboard.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante queda registrado y vinculado a su cuenta. Puede acceder a todas las secciones del Portal de Estudiantes.</li>
+<li><strong>Excepciones:</strong></li>
+<li>Si la cédula no se encuentra en el sistema: "No encontramos tu registro en el sistema del CTP de Liberia."</li>
+<li>Si la cédula ya está vinculada a otra cuenta: "Esa cédula ya está vinculada a otra cuenta."</li>
+<li>Si el correo no coincide con el ya asignado: "Esa cédula ya está vinculada a un correo."</li>
+<li>Si no usa correo institucional sin tener correo previo: "Para crear tu cuenta usa tu correo institucional @ctpliberia.ed.cr."</li>
+</ul>
+<h3>CU-E02: Ver el dashboard personal</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-E02: Consultar dashboard del estudiante</li>
+<li><strong>Actor(es):</strong> Estudiante</li>
+<li><strong>Precondiciones:</strong> El estudiante debe haber iniciado sesión en el Portal de Estudiantes.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Al iniciar sesión, se carga el dashboard con un saludo personalizado.</li>
+<li>Se muestran tarjetas de acceso rápido:</li>
+</ol>
+<ul>
+<li><strong>Mi información:</strong> nombre y cédula (enlace a perfil).</li>
+<li><strong>Mi comedor:</strong> estado de beca, cantidad de consumos y días distintos que asistió (enlace a comedor).</li>
+<li><strong>Mi biblioteca:</strong> libros prestados, vencidos y próxima fecha de devolución (enlace a biblioteca).</li>
+<li><strong>Mi código QR:</strong> credencial estudiantil (enlace a QR).</li>
+</ul>
+<ol>
+<li>Si el estudiante tiene reservas activas de biblioteca, se muestran debajo de las tarjetas.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante tiene una vista resumida de su actividad en comedor y biblioteca, con acceso rápido a cada sección.</li>
+</ul>
+<h3>CU-E03: Consultar menú y asistencia personal</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-E03: Ver comedor</li>
+<li><strong>Actor(es):</strong> Estudiante</li>
+<li><strong>Precondiciones:</strong> El estudiante debe haber iniciado sesión.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El estudiante accede a la sección "Comedor" (desde el dashboard o la barra de navegación).</li>
+<li>Se muestra el menú semanal (lunes a viernes) cargado desde Firestore (<code>configuracion/menu</code>).</li>
+<li>Se muestran las estadísticas personales de asistencia: cantidad de consumos, días distintos que asistió.</li>
+<li>Se despliega el historial personal de asistencias con fecha y hora de cada registro.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante conoce el menú de la semana y puede revisar cuántas veces ha asistido al comedor.</li>
+</ul>
+<h3>CU-E04: Consultar préstamos y reservas de biblioteca</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-E04: Ver biblioteca personal</li>
+<li><strong>Actor(es):</strong> Estudiante</li>
+<li><strong>Precondiciones:</strong> El estudiante debe haber iniciado sesión.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El estudiante accede a la sección "Biblioteca".</li>
+<li>Se muestran tres tarjetas resumen: libros prestados actualmente, cantidad vencidos, y próxima fecha de devolución.</li>
+<li>Si hay préstamos vencidos, se muestra una alerta roja con la cantidad.</li>
+<li>Si hay préstamos próximos a vencer (3 días o menos), se muestra una alerta amarilla.</li>
+<li>Se despliega la lista de "Mis préstamos activos" con título del libro, fechas de préstamo y vencimiento, estado (semaforo) y días restantes.</li>
+<li>Se despliega "Mis reservas" con el estado de cada una (disponible o en espera).</li>
+<li>Se muestra el "Historial de préstamos" con todos los préstamos anteriores y su estado final.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante tiene visibilidad completa de sus préstamos activos, reservas e historial de biblioteca.</li>
+</ul>
+<h3>CU-E05: Ver código QR personal</h3>
+<ul>
+<li><strong>Nombre:</strong> CU-E05: Consultar código QR</li>
+<li><strong>Actor(es):</strong> Estudiante</li>
+<li><strong>Precondiciones:</strong> El estudiante debe haber iniciado sesión. El estudiante debe tener un registro en la colección <code>estudiantes</code> con código QR generado.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>El estudiante accede a la sección "QR" (desde el dashboard o la barra de navegación).</li>
+<li>El sistema carga el código QR del estudiante desde su registro en Firestore.</li>
+<li>Se muestra la credencial digital en formato tarjeta con su foto, nombre, cédula, sección y código QR.</li>
+<li>El código QR contiene los datos en formato <code>nombre|cedula|seccion|nivel|tipo</code>.</li>
+<li>El estudiante puede mostrar esta credencial en pantalla para que sea escaneada en el comedor.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> El estudiante puede presentar su código QR en el comedor para registrar su asistencia.</li>
+</ul>
+<hr>
+<h2>6. Seguridad del Sistema</h2>
+<h3>6.1 Autenticación</h3>
+<ul>
+<li>Todas las operaciones requieren un usuario autenticado en Firebase Auth.</li>
+<li>El inicio de sesión se realiza con correo electrónico y contraseña.</li>
+<li>Los tokens de sesión se gestionan automáticamente por Firebase.</li>
+</ul>
+<h3>6.2 Control de acceso (Firestore Rules)</h3>
+<ul>
+<li><strong>Gestores</strong> (admin, profesor, bibliotecario): acceso de lectura y escritura a la mayoría de colecciones.</li>
+<li><strong>Admin</strong> (exclusivo): crear/eliminar estudiantes, gestionar roles, eliminar asistencias, eliminar invitados, configuración avanzada.</li>
+<li><strong>Estudiantes</strong>: solo pueden leer su propia información (por <code>uid</code> o <code>cedula</code>). Pueden escribir únicamente los campos <code>uid</code> y <code>correo</code> para vincular su cuenta.</li>
+<li><strong>Datos protegidos</strong>: la colección <code>usuarios</code> no permite eliminación. Las notificaciones solo pueden marcarse como leídas. Las recomendaciones de IA solo son escritas por el servicio de Firebase Admin.</li>
+</ul>
+<h3>6.3 Prevención de escalada de privilegios</h3>
+<ul>
+<li>Un usuario auto-registrado solo puede crear su documento de perfil con rol fijo <code>"estudiante"</code>.</li>
+<li>No puede modificar su propio rol ni el de otros usuarios.</li>
+<li>Las reglas validan que el correo proporcionado coincida con el token de Firebase Auth.</li>
+<li>La vinculación de <code>estudiantesId</code> solo puede hacerse una vez (de vacío a un valor).</li>
+</ul>
+<h3>6.4 Datos personales</h3>
+<ul>
+<li>El sistema trabaja con cédulas y nombres reales de estudiantes del CTP de Liberia.</li>
+<li>Las fotos se almacenan como base64 en Firestore.</li>
+<li>La IA solo trabaja con datos agregados y estadísticos; no revela nombres ni datos personales individuales.</li>
+</ul>
+<hr>
+<p><em>Manual generado para el sistema ComeID (Integra ID) — CTP de Liberia, Costa Rica.</em></p>
+</body>
+</html>
