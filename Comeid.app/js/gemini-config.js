@@ -1,12 +1,12 @@
 // =============================================
 // ComeID - Configuración de Gemini (modo directo)
-// Clave pública de la API. Se recomienda protegerla
-// en Google Cloud Console restringida al dominio:
-//   https://comeid-670b9.web.app
-// También se puede configurar desde el panel de IA
-// (se guarda en localStorage de este navegador).
+// SEGURIDAD: las claves de API NUNCA se escriben en el código fuente.
+// Esta constante queda vacía a propósito; la clave activa se configura
+// desde el panel de IA de cada navegador (se guarda en localStorage) o,
+// de forma recomendada, se llama a Gemini desde el servidor
+// (Cloud Function "analizarComeID" con secrets de Cloud Functions).
 // =============================================
-const GEMINI_API_KEY_DIRECTO = "AQ.Ab8RN6IDY9JXseRI4CZSB1heYU7QNmfH_zE0GHk-Cf0cws5ppg";
+const GEMINI_API_KEY_DIRECTO = "";
 const GEMINI_MODELO_DIRECTO = "gemini-flash-latest";
 
 const GEMINI_CLAVE_LOCALSTORAGE = "comeID_claveGemini";
