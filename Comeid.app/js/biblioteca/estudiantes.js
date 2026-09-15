@@ -16,7 +16,10 @@ function mostrarEstudiantesBib() {
     document.getElementById("contenido").innerHTML = `
         <div class="student-header">
             <h1 class="title">${trad.estudiantesBibTitle}</h1>
-            <button class="add-btn" onclick="toggleFormEstudianteBib()"><i class="fas fa-user-plus"></i> ${trad.estudiantesBibBtnAgregar}</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="add-btn" onclick="toggleFormEstudianteBib()"><i class="fas fa-user-plus"></i> ${trad.estudiantesBibBtnAgregar}</button>
+                <button class="add-btn" onclick="abrirImportacion('socios')" title="Importar socios desde Excel / CSV"><i class="fas fa-file-import"></i> Importar Excel/CSV</button>
+            </div>
         </div>
         <p style="color: var(--text-secondary); margin-top: 4px; max-width: 720px;">${trad.estudiantesBibSubtitle}</p>
         <div id="listadoEstudiantesBib" style="margin-top:16px;"></div>

@@ -55,7 +55,8 @@ function mostrarCatalogoLibros() {
     document.getElementById("contenido").innerHTML = `
         <div class="student-header">
             <h1 class="title">${trad.catalogoTitle}</h1>
-            ${gestion ? `<button class="add-btn" onclick="abrirFormLibro()"><i class="fas fa-plus"></i> ${trad.catalogoAgregar}</button>` : ""}
+            ${gestion ? `<button class="add-btn" onclick="abrirFormLibro()"><i class="fas fa-plus"></i> ${trad.catalogoAgregar}</button>
+            <button class="add-btn" onclick="abrirImportacion('libros')" title="Importar catálogo desde Excel / CSV"><i class="fas fa-file-import"></i> Importar Excel/CSV</button>` : ""}
         </div>
         <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
             <input type="text" class="search-box" id="buscarLibro" placeholder="${trad.catalogoBuscar}" oninput="renderTablaLibros()" style="flex:1; min-width:200px;">

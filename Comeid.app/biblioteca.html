@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
     <style>
         :root {
@@ -1312,6 +1312,31 @@
         </div>
     </div>
 
+    <!-- FORMULARIO DE IMPORTACIÓN EXCEL/CSV -->
+    <div class="form-container" id="formImportacion">
+        <div class="form-content">
+            <h2 id="importacionTitle">Importar desde Excel / CSV</h2>
+            <div class="form-group">
+                <label>Archivo Excel (.xlsx) o CSV</label>
+                <input type="file" id="importacionArchivo" accept=".xlsx,.xls,.csv,.txt" onchange="manejarArchivoImportacion(this)">
+                <p style="font-size:12px; opacity:.8; margin-top:6px;" id="importacionAyudaLibros">
+                    El código de barras (columna "código") es la llave única: si el código ya existe, el libro se
+                    actualiza; si no, se agrega. Formato esperado: código, título, autor, categoría, editorial, año,
+                    ejemplares, ISBN, estante, sección, nivel, estado.
+                </p>
+                <p style="font-size:12px; opacity:.8; margin-top:6px; display:none;" id="importacionAyudaSocios">
+                    Se identifican por cédula: si la cédula ya existe, se actualizan sus datos; si no, se agrega.
+                    Formato esperado: nombre, cédula, sección, correo.
+                </p>
+            </div>
+            <div id="importacionPreview" style="max-height:260px; overflow-y:auto;"></div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="cerrarImportacion()">Cancelar</button>
+                <button class="btn-save" id="btnImportarArchivo" style="display:none;" onclick="ejecutarImportacion()">Importar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- FORMULARIO DE PRÉSTAMO -->
     <div class="form-container" id="formPrestamo">
         <div class="form-content">
@@ -1435,6 +1460,7 @@
             deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/biblioteca/globales.js"></script>
     <script src="js/biblioteca/utilidades.js"></script>
     <script src="js/biblioteca/traducciones.js"></script>
@@ -1453,6 +1479,7 @@
     <script src="js/biblioteca/reservas.js"></script>
     <script src="js/biblioteca/ayuda.js"></script>
     <script src="js/biblioteca/micuenta.js"></script>
+    <script src="js/biblioteca/importacion.js"></script>
 </body>
 
 </html>

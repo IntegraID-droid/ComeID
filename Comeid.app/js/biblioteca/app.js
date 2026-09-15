@@ -173,7 +173,7 @@ function cargarBibliotecaEstudiantes() {
         bibliotecaEstudiantes = [];
         qs.forEach(doc => {
             const d = doc.data();
-            bibliotecaEstudiantes.push({ id: doc.id, nombre: d.nombre || "Sin nombre", cedula: d.cedula || "", correo: d.correo || "" });
+            bibliotecaEstudiantes.push({ id: doc.id, nombre: d.nombre || "Sin nombre", cedula: d.cedula || "", correo: d.correo || "", seccion: d.seccion || "" });
         });
     }).catch(error => {
         console.warn("No se pudieron cargar los socios de la biblioteca:", error.message);
