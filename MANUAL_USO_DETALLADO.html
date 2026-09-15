@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de Casos de Uso — ComeID (Integra ID)</title>
+<style>
+body{font-family:"Segoe UI",Arial,sans-serif;margin:40px auto;max-width:920px;padding:0 24px;color:#1a1a1a;line-height:1.55;font-size:15px;}
+h1{color:#17326f;border-bottom:3px solid #17326f;padding-bottom:10px;margin-top:30px;}
+h2{color:#17326f;border-bottom:2px solid #d9e0f0;padding-bottom:6px;margin-top:34px;page-break-after:avoid;}
+h3{color:#2b67ff;margin-top:26px;page-break-after:avoid;}
+h4{color:#333;margin-top:18px;}
+hr{border:none;border-top:2px solid #d9e0f0;margin:24px 0;}
+table{border-collapse:collapse;width:100%;margin:14px 0;page-break-inside:avoid;}
+th,td{border:1px solid #c4cbd8;padding:8px 10px;font-size:13.5px;text-align:left;vertical-align:top;}
+th{background:#17326f;color:#fff;}
+tbody tr:nth-child(even){background:#f2f4f8;}
+pre,code{background:#f0f2f6;padding:2px 6px;border-radius:4px;font-family:Consolas,"Courier New",monospace;font-size:13px;}
+pre{padding:12px;overflow-x:auto;}
+blockquote{border-left:4px solid #2b67ff;margin:12px 0;padding:8px 16px;background:#f2f4f8;color:#333;}
+ul,ol{margin:8px 0 8px 6px;}
+li{margin:3px 0;}
+a{color:#2b67ff;}
+p{margin:8px 0;}
+@media print{
+  body{margin:0;padding:0;max-width:none;}
+  a{color:#1a1a1a;text-decoration:none;}
+  h1,h2,h3{page-break-after:avoid;}
+}
+</style>
+</head>
+<body>
+<h1>Manual de Uso Detallado — ComeID (Integra ID)</h1>
+<p>Sistema integrado de gestión de <strong>comedor estudiantil y biblioteca</strong></p>
+<p><strong>CTP de Liberia, Guanacaste — Costa Rica</strong></p>
+<p>Versión del sistema: 1.12.0</p>
+<hr>
+<h2>1. Introducción</h2>
+<h3>1.1 ¿Qué es ComeID?</h3>
+<p>ComeID (Integra ID) es una plataforma web que centraliza la gestión del <strong>comedor estudiantil</strong> y de la <strong>biblioteca</strong> del Colegio Técnico Profesional de Liberia. Permite al personal del centro educativo:</p>
+<ul>
+<li>Administrar el registro de estudiantes y sus cuentas de acceso.</li>
+<li>Controlar la asistencia diaria al comedor mediante <strong>escaneo de códigos QR</strong>.</li>
+<li>Planificar el <strong>menú semanal</strong> (de lunes a viernes) con ayuda de <strong>inteligencia artificial</strong>.</li>
+<li>Registrar <strong>invitados externos</strong> que consumen en el comedor.</li>
+<li>Gestionar la <strong>biblioteca</strong>: catálogo de libros, préstamos, reservas y devoluciones.</li>
+<li>Enviar <strong>notificaciones</strong> a los estudiantes.</li>
+<li>Generar <strong>reportes</strong> en Excel y PDF.</li>
+<li>Dar a los estudiantes un <strong>portal de auto-servicio</strong> para ver su menú, su asistencia, sus préstamos y su credencial QR.</li>
+</ul>
+<h3>1.2 ¿Cómo está construido?</h3>
+<p>La plataforma está desarrollada con <strong>Firebase</strong> (de Google):</p>
+<table><thead>
+<tr><th>Componente</th><th>Uso</th></tr>
+</thead><tbody>
+<tr><td><strong>Firebase Auth</strong></td><td>Inicio de sesión con correo y contraseña</td></tr>
+<tr><td><strong>Cloud Firestore</strong></td><td>Base de datos (reglas de seguridad por rol)</td></tr>
+<tr><td><strong>Firebase Hosting</strong></td><td>Publicación de las dos aplicaciones web</td></tr>
+<tr><td><strong>Google Gemini (IA)</strong></td><td>Asistencia para crear menús y predicción de demanda</td></tr>
+<tr><td><strong>Firebase Storage</strong></td><td>Almacenamiento (actualmente cerrado por seguridad)</td></tr>
+</tbody></table>
+<p>Las dos aplicaciones son <strong>frontend</strong> (sin servidor propio): toda la lógica se ejecuta en el navegador y el acceso a los datos está protegido por las <strong>reglas de seguridad de Firestore</strong>. Esto significa que nadie puede leer ni modificar información a la que no tenga permiso, aunque lo intente directamente contra la base de datos.</p>
+<h3>1.3 Las dos aplicaciones</h3>
+<table><thead>
+<tr><th>Aplicación</th><th>URL</th><th>Usuarios</th></tr>
+</thead><tbody>
+<tr><td><strong>Panel de Administración</strong></td><td><code>https://comeid-670b9.web.app</code></td><td>Personal del centro (admin, profesor, bibliotecario)</td></tr>
+<tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code></td><td>Estudiantes registrados</td></tr>
+</tbody></table>
+<p>Ambas comparten la misma base de datos: lo que registra el panel se ve en el portal y viceversa.</p>
+<hr>
+<h2>2. Roles y Permisos</h2>
+<p>El sistema define <strong>tres roles de gestores</strong> y un rol de <strong>estudiante</strong>. Cada rol solo ve las secciones que le corresponden.</p>
+<table><thead>
+<tr><th>Rol</th><th>¿Qué puede hacer?</th></tr>
+</thead><tbody>
+<tr><td><strong>admin</strong> (Administrador)</td><td>Acceso total: estudiantes, asistencia, invitados, menú, predicción IA, roles, configuración, exportar, QR.</td></tr>
+<tr><td><strong>profesor</strong> (Profesor)</td><td>Estudiantes, asistencia, historial, invitados, menú, QR, exportar. No gestiona roles ni configuración.</td></tr>
+<tr><td><strong>bibliotecario</strong></td><td>Biblioteca completa más el menú y el historial. No gestiona estudiantes.</td></tr>
+<tr><td><strong>estudiante</strong></td><td>Solo su portal personal: su menú, su asistencia, sus préstamos, sus notificaciones y su QR.</td></tr>
+</tbody></table>
+<blockquote><strong>Importante:</strong> un estudiante <strong>solo</strong> puede ver su propia información. Aunque conozca el correo o la cédula de otro compañero, la base de datos lo rechaza.</blockquote>
+<hr>
+<h2>3. Acceso al Sistema</h2>
+<h3>3.1 Navegadores recomendados</h3>
+<ul>
+<li><strong>Google Chrome</strong>, <strong>Microsoft Edge</strong> o <strong>Firefox</strong>, en sus versiones actualizadas (escritorio y móvil).</li>
+<li>La cámara del dispositivo se usa para el <strong>escaneo de QR</strong> y el registro con foto.</li>
+</ul>
+<h3>3.2 Para el personal (Panel de Administración)</h3>
+<ol>
+<li>Abra <code>https://comeid-670b9.web.app</code>.</li>
+<li>Escriba el <strong>correo</strong> y la <strong>contraseña</strong> que le entregó el administrador.</li>
+<li>Pulse <strong>Iniciar sesión</strong>.</li>
+</ol>
+<p>Si se olvida la contraseña, use <strong>¿Olvidaste tu contraseña?</strong> en la pantalla de inicio.</p>
+<h3>3.3 Para el estudiante (Portal de Estudiantes)</h3>
+<ol>
+<li>Abra <code>https://comeid-estudiantes.web.app</code>.</li>
+<li>Ingrese con el correo institucional y contraseña que creó al registrarse (ver CU-E01).</li>
+<li>Si aún no tiene cuenta, pulse <strong>Regístrate aquí</strong>.</li>
+</ol>
+<hr>
+<h1>4. Casos de Uso del Panel de Administración</h1>
+<h2>CU-01: Iniciar sesión</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor, bibliotecario.</li>
+<li><strong>Precondiciones:</strong> el administrador debe haber creado la cuenta del usuario o haberle asignado un rol.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra el panel en <code>https://comeid-670b9.web.app</code>.</li>
+<li>Introduzca su correo.</li>
+<li>Introduzca su contraseña (use el ícono del ojo para mostrarla si la necesita).</li>
+<li>Pulse <strong>Iniciar sesión</strong>.</li>
+<li>El sistema lo lleva al <strong>panel de control</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> se muestra el panel con las secciones según el rol del usuario. Si el correo o la contraseña son incorrectos, aparece un mensaje de error y se vuelve a pedir el dato.</li>
+</ul>
+<hr>
+<h2>CU-02: Consultar el panel de control (Dashboard)</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor, bibliotecario.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Inicie sesión (CU-01).</li>
+<li>El menú lateral muestra la opción <strong>Inicio / Dashboard</strong>.</li>
+<li>En las tarjetas vea los indicadores: número de estudiantes registrados, asistencias del día, estudiantes que comieron hoy, invitados del día, libros prestados o por vencer, entre otros.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> una vista resumida del estado del comedor y la biblioteca en tiempo real.</li>
+</ul>
+<hr>
+<h2>CU-03: Ver y buscar estudiantes</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Precondiciones:</strong> tener rol admin o profesor.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú lateral pulse <strong>Estudiantes</strong>.</li>
+<li>Use la <strong>casilla de búsqueda</strong> para filtrar por nombre, cédula o sección.</li>
+<li>La lista se actualiza mientras escribe.</li>
+<li>Cada fila muestra: nombre, cédula, sección, nivel, tipo (Becado/Pagado) y acciones (editar, QR, eliminar).</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> la lista de estudiantes filtrada y con acceso a sus acciones.</li>
+</ul>
+<hr>
+<h2>CU-04: Registrar un estudiante nuevo con cuenta de acceso</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Precondiciones:</strong> tener el expediente del estudiante (nombre, cédula, sección, nivel, tipo de beca) y, si se le dará cuenta, un correo y una contraseña.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Pulse <strong>Estudiantes</strong> → botón <strong>Nuevo estudiante</strong>.</li>
+<li>Complete los datos: nombre completo, cédula, sección, nivel y tipo (Becado/Pagado).</li>
+<li>Opcionalmente agregue una <strong>foto</strong> con la cámara o desde un archivo.</li>
+<li>Si desea crear una <strong>cuenta de acceso</strong>: marque la opción de crear cuenta e introduzca el correo y la contraseña del estudiante.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+<li>El sistema crea el registro del estudiante y, de forma automática:</li>
+</ol>
+<ul>
+<li>genera su <strong>código QR</strong> de identificación;</li>
+<li>crea su cuenta de acceso al portal, si se pidió;</li>
+<li>crea su documento de perfil en la colección <code>usuarios</code>;</li>
+<li>lo deja listo para escanear en el comedor.</li>
+<li><strong>Variaciones/errores comunes:</strong></li>
+<li>Si el correo ya está en uso por otra cuenta, aparece un mensaje: es necesario usar otro correo.</li>
+<li>Si la cédula ya existe, el sistema avisa para evitar duplicados.</li>
+<li><strong>Resultado esperado:</strong> el estudiante queda registrado, con QR, y puede iniciar sesión en el portal.</li>
+</ul>
+<hr>
+<h2>CU-05: Editar los datos de un estudiante</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En <strong>Estudiantes</strong>, localice al estudiante (CU-03).</li>
+<li>Pulse el botón <strong>Editar</strong> de su fila.</li>
+<li>Modifique los campos necesarios (nombre, sección, nivel, tipo, correo, foto).</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> los datos quedan actualizados en el comedor, la biblioteca y el portal del estudiante.</li>
+</ul>
+<hr>
+<h2>CU-06: Eliminar un estudiante</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin.</li>
+<li><strong>Precondiciones:</strong> tener rol admin. Esta acción <strong>no se puede deshacer</strong>.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En <strong>Estudiantes</strong>, localice al estudiante.</li>
+<li>Pulse el botón <strong>Eliminar</strong>.</li>
+<li>Confirme la acción en la ventana de aviso.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el estudiante sale de la lista y pierde el acceso al comedor.</li>
+<li><strong>Nota técnica (limitación actual):</strong> la cuenta de correo de Firebase puede seguir existiendo en el proveedor de autenticación aunque el estudiante se elimine. Para liberar ese correo (por si se quiere reutilizar), un administrador debe eliminarla en la consola de Firebase → Authentication → Users.</li>
+</ul>
+<hr>
+<h2>CU-07: Importar estudiantes desde un archivo CSV o Excel</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En <strong>Estudiantes</strong>, pulse el botón <strong>Importar</strong>.</li>
+<li>Seleccione el archivo (CSV compatible con Excel).</li>
+<li>El sistema muestra la vista previa de los registros detectados.</li>
+<li>Revise que los datos se lean correctamente (nombre, cédula, sección, nivel, tipo).</li>
+<li>Confirme la importación.</li>
+<li>Los registros exitosos se crean; los que tengan errores (cédula repetida, datos incompletos) se listan para corregir.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> los estudiantes del archivo quedan registrados masivamente con sus QR generados.</li>
+</ul>
+<hr>
+<h2>CU-08: Controlar la asistencia al comedor (escaneo QR)</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Precondiciones:</strong> el estudiante debe estar registrado y tener su QR; el equipo debe tener cámara.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú lateral pulse <strong>Escanear QR</strong>.</li>
+<li>Permita el acceso a la cámara (botón <strong>Permitir</strong>) cuando el navegador lo pida.</li>
+<li>Dirija la cámara al <strong>código QR</strong> de la credencial o del móvil del estudiante.</li>
+<li>Al detectarlo, el sistema identifica al estudiante y <strong>registra su asistencia en automático</strong>.</li>
+<li>En pantalla se confirma el nombre del estudiante; si el comedor está habilitado por turno, se valida el turno correspondiente.</li>
+<li>Use los botones de exportación para guardar la <strong>lista del día</strong> en Excel, PDF o CSV.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> cada estudiante escaneado queda marcado como asistente del día, sin colas ni listas de papel.</li>
+</ul>
+<hr>
+<h2>CU-09: Generar y entregar credenciales QR</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor, bibliotecario.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú abra <strong>Generar QR</strong> (o desde la fila de un estudiante).</li>
+<li>Seleccione el estudiante o grupo.</li>
+<li>Pulse <strong>Generar</strong>.</li>
+<li>El sistema muestra el/los código(s) QR listos para <strong>imprimir</strong> o descargar.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> cada estudiante tiene una credencial imprimible con su QR único para la fila del comedor.</li>
+</ul>
+<hr>
+<h2>CU-10: Gestionar invitados externos en el comedor</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor.</li>
+<li><strong>Precondiciones:</strong> el comedor maneja una lista manual de invitados (personas que no son estudiantes del CTP).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú lateral pulse <strong>Invitados</strong>.</li>
+<li>Pulse <strong>Nuevo invitado</strong>.</li>
+<li>Registre los datos: nombre, y opcionalmente cédula, motivo, frecuencia (diario/una vez) y observaciones.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+<li>La lista de invitados del día se muestra y se puede marcar cuando asisten.</li>
+<li>Use las acciones de la lista para editar o eliminar invitados ya no vigentes.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> control de quién entra al comedor sin ser estudiante, con trazabilidad de visitas.</li>
+</ul>
+<hr>
+<h2>CU-11: Configurar el menú semanal (lunes a viernes)</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor, bibliotecario.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú pulse <strong>Menú Semanal</strong>.</li>
+<li>Para cada día de lunes a viernes se pueden definir los <strong>desayunos</strong> y los <strong>almuerzos</strong>.</li>
+<li>Escriba los platillos deseados (por ejemplo "Arroz con pollo y ensalada").</li>
+<li>Pulse <strong>Guardar menú</strong>.</li>
+<li>El menú queda publicado y se mostrará en el <strong>portal de estudiantes</strong> en el día correspondiente.</li>
+<li>(Opcional) Use el botón de <strong>IA</strong> para que el sistema sugiera menús balanceados: en la ventana de IA escriba la petición (por ejemplo cantidad de personas, presupuesto) y elija qué sugerencia usar.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> los estudiantes ven cada día qué se sirve en el comedor, y el personal tiene el plan semanal guardado.</li>
+<li><strong>Nota:</strong> el menú se gestiona solo de <strong>lunes a viernes</strong>; sábados y domingos no se configuran.</li>
+</ul>
+<hr>
+<h2>CU-12: Usar la predicción de demanda (inteligencia artificial)</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin (solo).</li>
+<li><strong>Precondiciones:</strong> clave de Gemini configurada por el administrador en el panel de IA.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú pulse <strong>Predicción</strong>.</li>
+<li>El sistema analiza el historial de asistencias y menús.</li>
+<li>Consulte la proyección de cuántos estudiantes podrían asistir (por ejemplo, el próximo día o semana).</li>
+<li>Use esa estimación para comprar y preparar los alimentos adecuados.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> mejor planificación de compras y menos desperdicio de comida.</li>
+<li><strong>Nota técnica:</strong> la IA se conecta desde el navegador usando la clave configurada en el panel; la clave <strong>no está escrita en el código fuente</strong> de la aplicación (ver sección 6).</li>
+</ul>
+<hr>
+<h2>CU-13: Gestionar el catálogo de libros (biblioteca)</h2>
+<ul>
+<li><strong>Actor(es):</strong> bibliotecario, admin.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Desde el <strong>selector de aplicación</strong> del panel, pulse <strong>Biblioteca</strong>.</li>
+<li>En <strong>Catálogo</strong>, pulse <strong>Nuevo libro</strong>.</li>
+<li>Registre título, autor, categoría, ISBN, ubicación y número de ejemplares.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+<li>Use la búsqueda para localizar libros y las acciones para editar o eliminar títulos.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> la biblioteca tiene su catálogo digitalizado y consultable desde el portal del estudiante.</li>
+</ul>
+<hr>
+<h2>CU-14: Registrar préstamos y devoluciones (biblioteca)</h2>
+<ul>
+<li><strong>Actor(es):</strong> bibliotecario, admin.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En <strong>Préstamos</strong>, pulse <strong>Nuevo préstamo</strong>.</li>
+<li>Seleccione el estudiante (socio de biblioteca) y el libro del catálogo.</li>
+<li>El sistema calcula la <strong>fecha de vencimiento</strong> automáticamente.</li>
+<li>Pulse <strong>Guardar</strong>. El libro queda marcado como prestado y aparece en "Mis préstamos" del estudiante.</li>
+<li>Para la <strong>devolución</strong>, localice el préstamo activo y pulse <strong>Devolver</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> trazabilidad completa de quién tiene cada libro y cuándo debe devolverlo.</li>
+<li><strong>Variación:</strong> los <strong>socios</strong> de la biblioteca se gestionan desde la sección correspondiente (pueden incluir estudiantes que usan la biblioteca aunque no pertenezcan al comedor).</li>
+</ul>
+<hr>
+<h2>CU-15: Gestionar reservas de libros</h2>
+<ul>
+<li><strong>Actor(es):</strong> bibliotecario, admin (crear/cancelar); el estudiante reserva desde su portal.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En <strong>Reservas</strong> o desde el portal del estudiante, se solicita un libro que está prestado o agotado.</li>
+<li>Cuando el libro se devuelve, el bibliotecario atiende la reserva por orden.</li>
+<li>El bibliotecario puede <strong>cancelar</strong> reservas vencidas.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> los estudiantes pueden apartar un título aunque esté prestado.</li>
+</ul>
+<hr>
+<h2>CU-16: Enviar notificaciones a los estudiantes</h2>
+<ul>
+<li><strong>Actor(es):</strong> gestores (admin, profesor, bibliotecario).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En la sección de notificaciones de la aplicación correspondiente, pulse <strong>Nueva notificación</strong>.</li>
+<li>Escriba el título y el mensaje.</li>
+<li>Elija el destinatario: <strong>todos</strong>, un estudiante concreto, o un grupo.</li>
+<li>Pulse <strong>Enviar</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> los estudiantes ven el aviso en su portal (sección <strong>Notificaciones</strong>).</li>
+</ul>
+<hr>
+<h2>CU-17: Gestionar usuarios y roles</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin (solo).</li>
+<li><strong>Precondiciones:</strong> tener rol admin para ver la sección.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú lateral pulse <strong>Gestión de Usuarios y Roles</strong>.</li>
+<li>Aparece la lista de todas las cuentas con su correo y rol actual.</li>
+<li>Para cada cuenta, seleccione el rol deseado en el desplegable: <strong>admin</strong>, <strong>profesor</strong> o <strong>estudiante</strong>.</li>
+<li>Pulse <strong>Guardar cambios</strong>.</li>
+<li>El cambio de permisos es <strong>inmediato</strong> y la aplicación se actualiza.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> solo el administrador puede dar o quitar privilegios.</li>
+<li><strong>Ejemplo de uso:</strong> para entregar una cuenta de administrador a un docente, se crea (o se localiza) su cuenta y se selecciona el rol <strong>admin</strong>, luego <strong>Guardar cambios</strong>.</li>
+</ul>
+<hr>
+<h2>CU-18: Exportar datos a Excel y PDF</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin, profesor (según la sección).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En las secciones con reportes (Estudiantes, Escáner del día, Historial) use el menú <strong>Exportar</strong>.</li>
+<li>Elija <strong>Excel</strong> (<code>.xlsx</code>) o <strong>PDF</strong>.</li>
+<li>El archivo se descarga al equipo.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> reportes listos para presentar o archivar.</li>
+</ul>
+<hr>
+<h2>CU-19: Configuración general del sistema</h2>
+<ul>
+<li><strong>Actor(es):</strong> admin (solo).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En el menú pulse <strong>Configuración</strong>.</li>
+<li>Ajuste las opciones disponibles: idioma de la interfaz (español, inglés, portugués, francés, alemán), datos del comedor/biblioteca, turnos, y la <strong>clave de acceso a la IA de Gemini</strong> para habilitar menús y predicción.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el sistema muestra la versión correcta y el comportamiento según lo configurado.</li>
+<li><strong>Nota:</strong> la configuración es la misma para el comedor y la biblioteca porque comparten la base de datos.</li>
+</ul>
+<hr>
+<h2>CU-20: Consultar el historial de actividades (auditoría)</h2>
+<ul>
+<li><strong>Actor(es):</strong> gestores.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>En la aplicación correspondiente abra la sección <strong>Actividad</strong>.</li>
+<li>Consulte el registro de eventos: altas, bajas, cambios de rol, préstamos, etc.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> trazabilidad de las acciones más importantes del sistema.</li>
+</ul>
+<hr>
+<h1>5. Casos de Uso del Portal de Estudiantes</h1>
+<h2>CU-E01: Registrarse y vincular la cuenta</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Precondiciones:</strong> el estudiante debe existir en el registro del comedor del CTP (por su cédula y nombre).</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra <code>https://comeid-estudiantes.web.app</code> y pulse <strong>Regístrate aquí</strong>.</li>
+<li>Escriba su <strong>correo institucional</strong> (dominio <code>@ctpliberia.ed.cr</code>), una <strong>contraseña</strong>, su <strong>cédula</strong> y su <strong>nombre completo</strong> tal como está registrado.</li>
+<li>Pulse <strong>Registrarme</strong>.</li>
+<li>El sistema valida que la cédula y el nombre coincidan con su registro oficial.</li>
+<li>Si el registro aún no tiene correo asignado, exige el correo institucional (para que nadie más pueda reclamar la cuenta).</li>
+<li>Al coincidir, la cuenta queda <strong>vinculada</strong> a su expediente y se abre su portal.</li>
+</ol>
+<ul>
+<li><strong>Variaciones/errores comunes:</strong></li>
+<li>"Registro no encontrado": la cédula o el nombre no coinciden con el padrón del comedor.</li>
+<li>"Correo ya asignado": esa cédula ya fue vinculada con otro correo; pida ayuda a la administración.</li>
+<li>"Ya se usa ese correo": alguien creó una cuenta con ese correo; use otro o recupere la contraseña.</li>
+<li><strong>Resultado esperado:</strong> el estudiante puede iniciar sesión y usar todas sus secciones personales.</li>
+</ul>
+<hr>
+<h2>CU-E02: Iniciar sesión en el portal</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante registrado.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra <code>https://comeid-estudiantes.web.app</code>.</li>
+<li>Escriba su correo y contraseña.</li>
+<li>Pulse <strong>Iniciar sesión</strong>.</li>
+<li>Si olvidó la contraseña, use <strong>¿Olvidaste tu contraseña?</strong> para restablecerla por correo.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> entrada al portal con su información personal.</li>
+</ul>
+<hr>
+<h2>CU-E03: Consultar el inicio (Dashboard del estudiante)</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Al entrar, vea el <strong>menú de hoy</strong>, sus <strong>reservas activas</strong>, su <strong>asistencia reciente</strong> y los avisos.</li>
+<li>Toque cada tarjeta para ir a la sección completa.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> resumen personal al día.</li>
+</ul>
+<hr>
+<h2>CU-E04: Ver el menú y su asistencia (Comedor)</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>Comedor</strong>.</li>
+<li>Consulte el <strong>menú de la semana</strong> (lunes a viernes).</li>
+<li>Vea su <strong>asistencia</strong>: cuántos días ha comido en los últimos 30 días y el desglose por día de la semana.</li>
+<li>Consulte su <strong>historial de consumos</strong>.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el estudiante sabe qué se sirve y cuántas veces ha asistido.</li>
+</ul>
+<hr>
+<h2>CU-E05: Consultar préstamos y reservas (Biblioteca)</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>Biblioteca</strong>.</li>
+<li>Vea <strong>Mis préstamos activos</strong>: qué libros tiene y cuándo vencen.</li>
+<li>Vea <strong>Mis reservas</strong>: libros que apartó y su estado.</li>
+<li>Consulte el <strong>historial de préstamos</strong> realizados.</li>
+<li>Puede <strong>reservar</strong> un libro que esté prestado o agotado desde el catálogo.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el estudiante controla sus materiales de la biblioteca.</li>
+</ul>
+<hr>
+<h2>CU-E06: Presentar su credencial QR</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>QR</strong>.</li>
+<li>Se muestra su código QR personal.</li>
+<li>Preséntelo en el comedor para ser escaneado.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> asistencia registrada sin necesidad de carné físico.</li>
+<li><strong>Sugerencia:</strong> pantalla a máximo brillo y guardar la imagen para usarla sin internet.</li>
+</ul>
+<hr>
+<h2>CU-E07: Consultar notificaciones</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>Notificaciones</strong>.</li>
+<li>Vea los avisos generales y los dirigidos a usted.</li>
+<li>Marque como leídas las que corresponda.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el estudiante está al día con los comunicados del comedor y la biblioteca.</li>
+</ul>
+<hr>
+<h2>CU-E08: Gestionar su perfil</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>Perfil</strong>.</li>
+<li>Revise sus datos personales y el estado de su comer.</li>
+<li>Consulte la información de su cuenta (correo asociado).</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> verificación de que sus datos son correctos.</li>
+</ul>
+<hr>
+<h2>CU-E09: Configurar idioma y tema del portal</h2>
+<ul>
+<li><strong>Actor(es):</strong> estudiante.</li>
+<li><strong>Flujo principal:</strong></li>
+</ul>
+<ol>
+<li>Abra la sección <strong>Configuración</strong>.</li>
+<li>Elija el <strong>idioma</strong> de la interfaz.</li>
+<li>Cambie el <strong>tema</strong> (claro/oscuro) si está disponible.</li>
+<li>Guarde los cambios.</li>
+</ol>
+<ul>
+<li><strong>Resultado esperado:</strong> el portal se muestra según sus preferencias en su dispositivo.</li>
+</ul>
+<hr>
+<h1>6. Seguridad del Sistema</h1>
+<p>ComeID incorpora varias capas de seguridad, verificadas y probadas. Es importante tenerlo presente al presentar el proyecto.</p>
+<h3>6.1 Control de acceso por rol en la base de datos (Firestore Rules)</h3>
+<p>Todas las operaciones de lectura y escritura contra la base de datos están protegidas por reglas del lado del servidor de Firebase. Aunque alguien robara el código fuente o conectara su propio cliente, <strong>no podría</strong> leer ni modificar datos sin cumplir las reglas. Lo más relevante:</p>
+<ul>
+<li><strong>Gestores</strong> (admin, profesor, bibliotecario): acceso a la gestión del comedor y la biblioteca.</li>
+<li><strong>Estudiantes</strong>: solo lectura de <strong>su propia</strong> información, verificada por su <code>uid</code> y su cédula.</li>
+<li><strong>Escrituras restringidas</strong>: por ejemplo, un estudiante solo puede actualizar en su expediente los campos de <code>uid</code> y <code>correo</code>, y únicamente con su correo verificado por Firebase.</li>
+<li><strong>Eliminaciones limitadas</strong>: nadie puede eliminar documentos de usuarios ni de notificaciones desde el cliente.</li>
+<li><strong>Collections sensibles</strong> (invitados, inventario, notas, historial de comedor): solo gestores.</li>
+<li><strong>Almacenamiento de archivos</strong> (Firebase Storage): completamente <strong>cerrado</strong> (<code>deny</code>), porque el sistema no necesita subir archivos públicos.</li>
+</ul>
+<h3>6.2 Cabeceras de seguridad en la web (CSP)</h3>
+<p>Ambas aplicaciones envían cabeceras <strong>Content-Security-Policy</strong> que restringen qué recursos puede cargar el navegador:</p>
+<ul>
+<li>Solo se permiten <strong>scripts</strong> de la propia aplicación, de Firebase (<code>gstatic.com</code>) y de la librería de íconos (Font Awesome vía <code>cdnjs</code>).</li>
+<li><strong>Sin evaluación de código dinámico</strong> (<code>eval</code> prohibido frente a inyección de código).</li>
+<li>Solo se permiten conexiones a los servicios de Firebase/Auth/Firestore y a la API de Gemini.</li>
+<li>No se permite incrustar la aplicación dentro de otra web (<code>frame-ancestors 'self'</code>) y se desactivan objetos embebidos (<code>object-src 'none'</code>).</li>
+</ul>
+<p>También se envían: <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: SAMEORIGIN</code>, <code>Referrer-Policy</code> y <code>Permissions-Policy</code>.</p>
+<h3>6.3 Sin secretos en el código fuente</h3>
+<ul>
+<li>La <strong>clave de la IA (Gemini)</strong> <strong>no</strong> está escrita en el código. Se configura desde el panel de IA y se guarda únicamente en el navegador del administrador.</li>
+<li>El repositorio de GitHub es <strong>privado</strong> y posee un <code>.gitignore</code> que excluye archivos de credenciales.</li>
+<li>Se corrigió un hallazgo crítico: antes era posible que un usuario creara su propio documento de perfil con rol "admin" y escalara privilegios; ahora las reglas fuerzan rol "estudiante" y correo verificado al auto-registrarse.</li>
+</ul>
+<h3>6.4 Correcciones de seguridad aplicadas</h3>
+<p>Durante la puesta en producción se detectaron y corrigieron:</p>
+<ol>
+<li><strong>Escalada de rol</strong> en la creación de perfiles de usuario (corregido en las reglas de Firestore).</li>
+<li><strong>Clave de IA expuesta</strong> en el código (retirada del código; la configuración quedó por-panel).</li>
+<li><strong>Recurso externo bloqueado</strong> por el CSP (el generador de QR se movió a un CDN permitido).</li>
+<li><strong>JSON de configuración inválido</strong> tras añadir cabeceras (se reconstruyó y validó).</li>
+</ol>
+<h3>6.5 Limitaciones honestas del proyecto</h3>
+<p>Es importante que el profesor conozca también cuáles son las limitaciones previstas:</p>
+<ul>
+<li>Es una plataforma <strong>100% frontend</strong> sobre el plan gratuito de Firebase (Spark). La seguridad real reside en las reglas de la base de datos; el código JavaScript es visible para cualquiera que quiera inspeccionarlo.</li>
+<li>Las <strong>cédulas y nombres</strong> se guardan en texto plano en Firestore (Firestore no cifra los campos de forma nativa).</li>
+<li>El CSP permite <code>'unsafe-inline'</code> en scripts porque existen pequeños scripts dentro de los HTML; se puede eliminar en una mejora futura.</li>
+<li>No hay <strong>autenticación de dos pasos</strong> (2FA) ni límite de intentos de contraseña más allá del control que da Firebase.</li>
+<li>Eliminar un estudiante no borra automáticamente su cuenta de autenticación en Firebase (limitación del plan gratuito, sin funciones de servidor).</li>
+</ul>
+<hr>
+<h1>7. Mejoras Futuras Previstas</h1>
+<p>Estas son las mejoras que no se han podido implementar todavía y que se sugieren como siguientes pasos:</p>
+<h3>7.1 Funciones de servidor (Cloud Functions)</h3>
+<ul>
+<li>Migrar a un plan de pago (Blaze) y desplegar funciones de backend para: <strong>eliminar cuentas de autenticación</strong> de estudiantes dados de baja, <strong>llamar a la IA desde el servidor</strong> (sin exponer ningún manejo de la clave), y validar o auditar operaciones sensibles.</li>
+<li>Esto permitiría también correos automáticos, respaldos programados y cierres de lote diarios.</li>
+</ul>
+<h3>7.2 App Check y mayor protección del acceso</h3>
+<ul>
+<li>Activar <strong>Firebase App Check</strong> para que solo la aplicación real pueda acceder a los datos, bloqueando peticiones externas.</li>
+<li>Implementar <strong>autenticación de dos pasos (2FA)</strong> para cuentas admin.</li>
+<li>Añadir límites de intentos y bloqueo temporal por contraseña.</li>
+</ul>
+<h3>7.3 Eliminar los scripts inline y endurecer el CSP</h3>
+<ul>
+<li>Externalizar los pequeños bloques de script de las páginas HTML para poder retirar <code>'unsafe-inline'</code> del CSP y cerrar por completo la inyección de código.</li>
+</ul>
+<h3>7.4 Cifrado de datos personales</h3>
+<ul>
+<li>Implementar cifrado/reversión de campos sensibles (cédulas, teléfonos) en la aplicación antes de guardarlos en Firestore.</li>
+</ul>
+<h3>7.5 Copias de seguridad y recuperación</h3>
+<ul>
+<li>Exportación automática de Firestore (respaldos diarios) y un manual de restauración.</li>
+</ul>
+<h3>7.6 Reportes y estadísticas ampliadas</h3>
+<ul>
+<li>Dashboard de reportes más profundos: desperdicio, costo por platillo, socios de biblioteca más activos, morosidad de préstamos.</li>
+</ul>
+<h3>7.7 Mejoras de experiencia</h3>
+<ul>
+<li>Aplicación móvil o PWA con soporte offline.</li>
+<li>Recordatorios de devolución de libros por correo.</li>
+<li>Multi-instituto (que varias instituciones usen la misma plataforma con sus propios datos).</li>
+</ul>
+<hr>
+<h1>8. Conclusión</h1>
+<p>ComeID (Integra ID) es un sistema completo para la gestión del comedor y la biblioteca del CTP de Liberia, con control de acceso por roles, asistencia por QR, menú con apoyo de inteligencia artificial, biblioteca digitalizada y portal de auto-servicio para estudiantes. La seguridad se apoya en las reglas de Firestore y en cabeceras de protección web, y el sistema queda documentado y listo para crecer con las mejoras propuestas en la sección 7.</p>
+<hr>
+<p><em>Documento elaborado como manual de uso y presentación del proyecto ComeID (Integra ID) — CTP de Liberia.</em></p>
+</body>
+</html>
