@@ -66,7 +66,15 @@ service cloud.firestore {
       allow read: if request.auth != null &&
         (esGestor() || request.auth.uid == usuario);
       allow create: if request.auth != null &&
-        (request.auth.uid == usuario || esGestor());
+        (esGestor() ||
+         (request.auth.uid == usuario &&
+          // Un usuario auto-registrado solo puede crear SU documento con
+          // rol fijo "estudiante", su correo verificado por Firebase y
+          // únicamente los campos que escribe la app. Esto impide forjar
+          // un perfil con rol "admin" para escalar privilegios.
+          request.resource.data.rol == "estudiante" &&
+          request.resource.data.correo == request.auth.token.email &&
+          request.resource.data.keys().hasOnly(["rol", "nombre", "correo", "cedula", "estudiantesId"])));
       allow update: if request.auth != null &&
         (esGestor() || (request.auth.uid == usuario &&
         resource.data.diff(request.resource.data).affectedKeys().hasOnly(["nombre", "correo", "estudiantesId"]) &&
