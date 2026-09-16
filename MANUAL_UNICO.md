@@ -13,6 +13,7 @@
 | Tipo de Proyecto | Desarrollo práctico — Plataforma web |
 | Metodología de referencia | RUP — Proceso Racional Unificado |
 | Versión del sistema | 1.12.0 |
+| **Autora** | **Bianka Fernanda Hernández Araya** |
 
 ---
 
@@ -42,7 +43,7 @@ Para controlar el proceso de desarrollo se utilizó como referencia la metodolog
 8. **Trazabilidad de requisitos** — 8.1 Casos de prueba RF · 8.2 Casos de prueba RNF
 9. **Seguridad del sistema**
 10. **Conclusiones y trabajo futuro**
-11. **Anexos** — A.1 Ficha técnica · A.2 URLs del sistema · A.3 Preguntas frecuentes · A.4 Glosario
+11. **Anexos** — A.1 Ficha técnica · A.2 URLs del sistema · A.3 Preguntas frecuentes · A.4 Glosario · A.5 Capturas de pantalla
 
 ---
 
@@ -664,6 +665,7 @@ La metodología de referencia (RUP, dirigida por casos de uso) permitió estruct
 | Módulo de comedor | ComeID |
 | Módulo de biblioteca | Bibliogest |
 | Portal de estudiantes | ComeID Estudiantes |
+| Autora | Bianka Fernanda Hernández Araya |
 | Tecnología | Firebase (Auth, Firestore, Hosting) + Google Gemini (IA) |
 | Panel del personal | `https://comeid-670b9.web.app` |
 | Portal de estudiantes | `https://comeid-estudiantes.web.app` |
@@ -737,7 +739,7 @@ La metodología de referencia (RUP, dirigida por casos de uso) permitió estruct
 
 ## A.5 Capturas de pantalla
 
-> Las capturas siguientes fueron tomadas de la versión publicada (sitio real) en modo oscuro.
+> Las capturas siguientes fueron tomadas de la **versión publicada** (sitio real) en modo oscuro, con sesión activa.
 
 ### A.5.1 Inicio de sesión del Panel de Administración
 
@@ -745,26 +747,79 @@ La metodología de referencia (RUP, dirigida por casos de uso) permitió estruct
 
 *Figura A.1 — Pantalla de inicio de sesión del panel de administración (comeid-670b9.web.app).*
 
-### A.5.2 Inicio de sesión del Portal de Estudiantes
+### A.5.2 Panel principal (Dashboard)
+
+![Dashboard del Panel de Administración](capturas/cap2_panel_dashboard.png)
+
+*Figura A.2 — Panel principal del administrador con el resumen general del sistema.*
+
+### A.5.3 Selector de aplicaciones del panel
+
+![Selector de aplicaciones del panel](capturas/cap3_panel_selector.png)
+
+*Figura A.3 — Selector de módulos (comedor y biblioteca) del panel de administración.*
+
+### A.5.4 Gestión de la biblioteca en el panel
+
+![Biblioteca del panel de administración](capturas/cap10_panel_biblioteca.png)
+
+*Figura A.4 — Catálogo y gestión de la biblioteca desde el panel (Bibliogest).*
+
+### A.5.5 Inicio de sesión del Portal de Estudiantes
 
 ![Login del Portal de Estudiantes](capturas/cap_est_index.png)
 
-*Figura A.2 — Pantalla de inicio de sesión del portal de estudiantes (comeid-estudiantes.web.app).*
+*Figura A.5 — Pantalla de inicio de sesión del portal de estudiantes (comeid-estudiantes.web.app).*
 
-### A.5.3 Registro de estudiantes en el Portal
+### A.5.6 Registro de estudiantes en el Portal
 
 ![Registro del Portal de Estudiantes](capturas/cap_est_registro.png)
 
-*Figura A.3 — Pantalla de registro de estudiantes con confirmación de datos.*
-*Las funciones internas del panel (comedor, biblioteca, asistencia) requieren una sesión activa; por ello este anexo documenta las pantallas públicas accesibles sin credenciales.*
+*Figura A.6 — Pantalla de registro de estudiantes con confirmación de datos.*
+
+### A.5.7 Dashboard del estudiante
+
+![Dashboard del estudiante](capturas/cap4_est_dashboard.png)
+
+*Figura A.7 — Resumen personal del estudiante: asistencia al comedor, libros prestados y próximas fechas.*
+
+### A.5.8 Comedor del estudiante
+
+![Comedor del estudiante](capturas/cap5_est_comedor.png)
+
+*Figura A.8 — Menú semanal del comedor y consumo del estudiante.*
+
+### A.5.9 Biblioteca del estudiante
+
+![Biblioteca del estudiante](capturas/cap6_est_biblioteca.png)
+
+*Figura A.9 — Catálogo de la biblioteca y préstamos del estudiante desde el portal.*
+
+### A.5.10 Credencial QR del estudiante
+
+![QR del estudiante](capturas/cap7_est_qr.png)
+
+*Figura A.10 — Credencial QR personal del estudiante para asistencia al comedor.*
+
+### A.5.11 Perfil del estudiante
+
+![Perfil del estudiante](capturas/cap8_est_perfil.png)
+
+*Figura A.11 — Datos personales y configuración de la cuenta del estudiante.*
+
+### A.5.12 Notificaciones del estudiante
+
+![Notificaciones del estudiante](capturas/cap9_est_notificaciones.png)
+
+*Figura A.12 — Centro de notificaciones y avisos del estudiante.*
 
 # 12. Derechos de autor
 
 ## 12.1 Aviso de derechos de autor
 
-**© 2026 Integra ID. Todos los derechos reservados.**
+**© 2026 Bianka Fernanda Hernández Araya. Todos los derechos reservados.**
 
-Esta obra (software, código fuente, diseño, diagramas y documentación) fue desarrollada como **proyecto estudiantil** del **Colegio Técnico Profesional (CTP) de Liberia**, Costa Rica.
+Esta obra (software, código fuente, diseño, diagramas y documentación) fue **creada y desarrollada por Bianka Fernanda Hernández Araya** como **proyecto estudiantil** del **Colegio Técnico Profesional (CTP) de Liberia**, Costa Rica.
 
 ## 12.2 Condiciones de uso
 
@@ -784,11 +839,12 @@ Esta obra (software, código fuente, diseño, diagramas y documentación) fue de
 | Área | Medio |
 |---|---|
 | Institución | Colegio Técnico Profesional de Liberia, Guanacaste, Costa Rica |
+| Autora | Bianka Fernanda Hernández Araya |
 | Proyecto | Integra ID (ComeID, Bibliogest, Portal de Estudiantes) |
 | Repositorio | GitHub — `IntegraID-droid/ComeID` |
 
 ---
 
-*Documento elaborado como manual de uso, documentación técnica y presentación del proyecto Integra ID (ComeID, Bibliogest y Portal de Estudiantes) — CTP de Liberia, Costa Rica.*
+*Documento elaborado como manual de uso, documentación técnica y presentación del proyecto Integra ID (ComeID, Bibliogest y Portal de Estudiantes), desarrollado por Bianka Fernanda Hernández Araya — CTP de Liberia, Costa Rica.*
 
-*© 2026 Integra ID — Colegio Técnico Profesional de Liberia. Todos los derechos reservados.*
+*© 2026 Bianka Fernanda Hernández Araya — Colegio Técnico Profesional de Liberia. Todos los derechos reservados.*
