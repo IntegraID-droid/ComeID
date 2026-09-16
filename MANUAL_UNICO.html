@@ -162,20 +162,61 @@ p{margin:8px 0;}
 </tbody></table>
 <hr>
 <h1>4. Arquitectura y tecnologías</h1>
+<h2>4.1 Plataforma y servicios</h2>
 <p>La plataforma está desarrollada con <strong>Firebase</strong> (de Google):</p>
 <table><thead><tr><th>Componente</th><th>Uso</th></tr></thead><tbody>
 <tr><td><strong>Firebase Auth</strong></td><td>Inicio de sesión con correo y contraseña</td></tr>
-<tr><td><strong>Cloud Firestore</strong></td><td>Base de datos con reglas de seguridad por rol</td></tr>
+<tr><td><strong>Cloud Firestore</strong></td><td>Base de datos NoSQL con reglas de seguridad por rol</td></tr>
 <tr><td><strong>Firebase Hosting</strong></td><td>Publicación de las dos aplicaciones web</td></tr>
+<tr><td><strong>Firebase Functions</strong></td><td>Funciones de servidor (respaldo, importación, IA, correos)</td></tr>
 <tr><td><strong>Google Gemini (IA)</strong></td><td>Asistencia para menús y predicción de demanda</td></tr>
 <tr><td><strong>Firebase Storage</strong></td><td>Almacenamiento (actualmente cerrado por seguridad)</td></tr>
 </tbody></table>
-<p>Las dos aplicaciones son <strong>frontend</strong>: toda la lógica se ejecuta en el navegador y el acceso a los datos está protegido por las <strong>reglas de seguridad de Firestore</strong>. Esto significa que nadie puede leer ni modificar información a la que no tenga permiso, aunque lo intente directamente contra la base de datos.</p>
+<p>Las dos aplicaciones son <strong>frontend</strong>: toda la lógica se ejecuta en el navegador y el acceso a los datos está protegido por las <strong>reglas de seguridad de Firestore</strong>. Esto significa que nadie puede leer ni modificar información a la que no tenga permiso, aunque lo intente directamente contra la base de datos. Las <strong>funciones de servidor</strong> (Cloud Functions) complementan el sistema para tareas de respaldo, importación masiva, generación de reportes, envío de correos y análisis con IA.</p>
 <p>Ambas aplicaciones comparten la misma base de datos: lo que registra el panel se ve en el portal y viceversa.</p>
 <table><thead><tr><th>Aplicación</th><th>URL</th><th>Usuarios</th></tr></thead><tbody>
 <tr><td><strong>Panel de Administración</strong></td><td><code>https://comeid-670b9.web.app</code></td><td>Administradores, profesores, bibliotecarios</td></tr>
 <tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code></td><td>Estudiantes registrados</td></tr>
 </tbody></table>
+<h2>4.2 Lenguajes de programación utilizados</h2>
+<p>El sistema fue desarrollado íntegramente con <strong>tecnologías web estándar</strong> y <strong>scripts de servidor de apoyo</strong>:</p>
+<table><thead><tr><th>Lenguaje</th><th>Uso en el sistema</th><th>Dónde se usa</th></tr></thead><tbody>
+<tr><td><strong>HTML5</strong></td><td>Estructura de las páginas web (interfaces del panel y del portal)</td><td><code>Comeid.app/<em>.html</code> y <code>ComeidEstudiantes/</em>.html</code></td></tr>
+<tr><td><strong>CSS3</strong></td><td>Estilos, diseño responsive, temas claro/oscuro y animaciones</td><td>Archivos de estilo de ambas aplicaciones</td></tr>
+<tr><td><strong>JavaScript (ECMAScript)</strong></td><td>Lógica del sistema: autenticación, base de datos, escaneo QR, exportación, IA</td><td><code>Comeid.app/js/<em>.js</code> y <code>ComeidEstudiantes/js/</em>.js</code></td></tr>
+<tr><td><strong>Node.js</strong></td><td>Backend de Cloud Functions (análisis con Gemini, correos, reportes)</td><td><code>Comeid.app/functions/</code></td></tr>
+<tr><td><strong>Python 3</strong></td><td>Herramientas de administración local: respaldo, restauración, importación de libros y predicción</td><td><code>Comeid.app/python/comeid.py</code> y <code>Comeid.app/functions-python/</code></td></tr>
+<tr><td><strong>Reglas de Firestore (lenguaje de reglas de seguridad)</strong></td><td>Control de acceso por rol en la base de datos</td><td><code>Comeid.app/firestore.rules</code></td></tr>
+<tr><td><strong>JSON</strong></td><td>Configuración del proyecto, manifiestos PWA y archivos de datos</td><td><code>firebase.json</code>, <code>manifest.json</code>, etc.</td></tr>
+<tr><td><strong>Bash / PowerShell</strong></td><td>Despliegue y automatización local (Firebase CLI)</td><td>Scripts de despliegue del desarrollador</td></tr>
+</tbody></table>
+<h2>4.3 Librerías y componentes principales</h2>
+<table><thead><tr><th>Librería</th><th>Versión</th><th>Uso</th></tr></thead><tbody>
+<tr><td><strong>Firebase JS SDK</strong></td><td>8.10.0</td><td>Autenticación, Firestore, Functions, Storage</td></tr>
+<tr><td><strong>Font Awesome</strong></td><td>6.5.1</td><td>Íconos de la interfaz</td></tr>
+<tr><td><strong>qrcode-generator</strong></td><td>1.4.4</td><td>Generación de códigos QR de estudiantes y ejemplares</td></tr>
+<tr><td><strong>SheetJS (xlsx)</strong></td><td>0.18.5</td><td>Exportación e importación de archivos Excel</td></tr>
+<tr><td><strong>Google Generative AI</strong></td><td>0.21.0</td><td>Integración de la IA (Gemini) en las funciones</td></tr>
+<tr><td><strong>Firebase Admin</strong></td><td>12.1.0</td><td>Funciones de servidor con privilegios de administrador</td></tr>
+<tr><td><strong>Nodemailer</strong></td><td>10.0.9</td><td>Envío de correos desde las funciones (avisos de biblioteca)</td></tr>
+<tr><td><strong>Service Worker (PWA)</strong></td><td>—</td><td>Caché local y funcionamiento sin conexión parcial</td></tr>
+</tbody></table>
+<h2>4.4 Estructura del repositorio</h2>
+<pre><code>
+ComeDIDexpo/
+├── Comeid.app/            → Panel de administración (perfil admin/profesor/bibliotecario)
+│   ├── js/                → Lógica JavaScript del panel
+│   ├── python/            → Herramientas Python de administración local (respaldo, importación)
+│   ├── functions/         → Cloud Functions en Node.js (IA Gemini, correos, reportes)
+│   ├── functions-python/  → Cloud Functions en Python
+│   ├── firestore.rules    → Reglas de seguridad de la base de datos
+│   └── *.html             → Páginas del panel (index, login, selector, biblioteca)
+├── ComeidEstudiantes/     → Portal de estudiantes
+│   ├── js/                → Lógica JavaScript del portal
+│   └── *.html             → Páginas del portal (dashboard, comedor, biblioteca, QR, ...)
+├── diagrama_flujo_general.svg → Diagrama de flujo del sistema
+└── MANUAL_UNICO.*         → Este manual (md, html, pdf, docx)
+</code></pre>
 <hr>
 <h1>5. Vista de casos de uso</h1>
 <p>El sistema se organiza alrededor de los casos de uso que se especifican en el capítulo 7. La vista general es la siguiente:</p>
@@ -674,8 +715,46 @@ p{margin:8px 0;}
 <tr><td><strong>RUP</strong></td><td>Proceso Racional Unificado, metodología de referencia del proyecto.</td></tr>
 <tr><td><strong>Socio</strong></td><td>Estudiante con derecho a usar la biblioteca.</td></tr>
 <tr><td><strong>CSP</strong></td><td>Content-Security-Policy, cabecera de seguridad web.</td></tr>
+<tr><td><strong>CDN</strong></td><td>Red de distribución de contenido que sirve las librerías (Font Awesome, Firebase).</td></tr>
+<tr><td><strong>PWA</strong></td><td>Aplicación web progresiva; permite caché local y uso parcial sin conexión.</td></tr>
+</tbody></table>
+<h2>A.5 Capturas de pantalla</h2>
+<blockquote>Las capturas siguientes fueron tomadas de la versión publicada (sitio real) en modo oscuro.</blockquote>
+<h3>A.5.1 Inicio de sesión del Panel de Administración</h3>
+<p><img src="capturas/cap1_panel_login.png" alt="Login del Panel de Administración" style="max-width:100%;"></p>
+<p><em>Figura A.1 — Pantalla de inicio de sesión del panel de administración (comeid-670b9.web.app).</em></p>
+<h3>A.5.2 Inicio de sesión del Portal de Estudiantes</h3>
+<p><img src="capturas/cap_est_index.png" alt="Login del Portal de Estudiantes" style="max-width:100%;"></p>
+<p><em>Figura A.2 — Pantalla de inicio de sesión del portal de estudiantes (comeid-estudiantes.web.app).</em></p>
+<h3>A.5.3 Registro de estudiantes en el Portal</h3>
+<p><img src="capturas/cap_est_registro.png" alt="Registro del Portal de Estudiantes" style="max-width:100%;"></p>
+<p><em>Figura A.3 — Pantalla de registro de estudiantes con confirmación de datos.</em></p>
+<p><em>Las funciones internas del panel (comedor, biblioteca, asistencia) requieren una sesión activa; por ello este anexo documenta las pantallas públicas accesibles sin credenciales.</em></p>
+<h1>12. Derechos de autor</h1>
+<h2>12.1 Aviso de derechos de autor</h2>
+<p><strong>© 2026 Integra ID. Todos los derechos reservados.</strong></p>
+<p>Esta obra (software, código fuente, diseño, diagramas y documentación) fue desarrollada como <strong>proyecto estudiantil</strong> del <strong>Colegio Técnico Profesional (CTP) de Liberia</strong>, Costa Rica.</p>
+<h2>12.2 Condiciones de uso</h2>
+<ul>
+<li>El uso del sistema es <strong>exclusivo de la institución</strong> (CTP de Liberia) y de las personas autorizadas por la administración.</li>
+<li>Queda prohibida la <strong>reproducción, distribución, modificación o venta</strong> de este material, total o parcial, sin la autorización escrita de los autores y de la institución.</li>
+<li>Las <strong>reglas de seguridad de Firestore</strong> protegen los datos: ningún usuario puede leer o escribir información sin el permiso de su rol.</li>
+</ul>
+<h2>12.3 Reconocimientos</h2>
+<ul>
+<li><strong>Google Firebase</strong> (Auth, Firestore, Hosting, Functions) — plataforma de respaldo del sistema.</li>
+<li><strong>Google Gemini</strong> — modelos de inteligencia artificial utilizados para la asistencia de menús y predicciones.</li>
+<li><strong>Font Awesome</strong> — íconos de la interfaz.</li>
+<li>Al profesorado y la comunidad del <strong>CTP de Liberia</strong> que colaboró con la definición de los procesos (comedor, biblioteca y asistencia).</li>
+</ul>
+<h2>12.4 Contacto institucional</h2>
+<table><thead><tr><th>Área</th><th>Medio</th></tr></thead><tbody>
+<tr><td>Institución</td><td>Colegio Técnico Profesional de Liberia, Guanacaste, Costa Rica</td></tr>
+<tr><td>Proyecto</td><td>Integra ID (ComeID, Bibliogest, Portal de Estudiantes)</td></tr>
+<tr><td>Repositorio</td><td>GitHub — <code>IntegraID-droid/ComeID</code></td></tr>
 </tbody></table>
 <hr>
 <p><em>Documento elaborado como manual de uso, documentación técnica y presentación del proyecto Integra ID (ComeID, Bibliogest y Portal de Estudiantes) — CTP de Liberia, Costa Rica.</em></p>
+<p><em>© 2026 Integra ID — Colegio Técnico Profesional de Liberia. Todos los derechos reservados.</em></p>
 </body>
 </html>
