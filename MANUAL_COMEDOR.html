@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de Uso — ComeID (Comedor Estudiantil)</title>
+<style>
+body{font-family:"Segoe UI",Arial,sans-serif;margin:40px auto;max-width:920px;padding:0 24px;color:#1a1a1a;line-height:1.55;font-size:15px;}
+h1{color:#17326f;border-bottom:3px solid #17326f;padding-bottom:10px;margin-top:30px;}
+h2{color:#17326f;border-bottom:2px solid #d9e0f0;padding-bottom:6px;margin-top:34px;page-break-after:avoid;}
+h3{color:#2b67ff;margin-top:26px;page-break-after:avoid;}
+h4{color:#333;margin-top:18px;}
+hr{border:none;border-top:2px solid #d9e0f0;margin:24px 0;}
+table{border-collapse:collapse;width:100%;margin:14px 0;page-break-inside:avoid;}
+th,td{border:1px solid #c4cbd8;padding:8px 10px;font-size:13.5px;text-align:left;vertical-align:top;}
+th{background:#17326f;color:#fff;}
+tbody tr:nth-child(even){background:#f2f4f8;}
+pre,code{background:#f0f2f6;padding:2px 6px;border-radius:4px;font-family:Consolas,"Courier New",monospace;font-size:13px;}
+pre{padding:12px;overflow-x:auto;}
+blockquote{border-left:4px solid #2b67ff;margin:12px 0;padding:8px 16px;background:#f2f4f8;color:#333;}
+ul,ol{margin:8px 0 8px 6px;}
+li{margin:3px 0;}
+a{color:#2b67ff;}
+p{margin:8px 0;}
+@media print{body{margin:0;padding:0;max-width:none;}a{color:#1a1a1a;text-decoration:none;}h1,h2,h3{page-break-after:avoid;}}
+</style>
+</head>
+<body>
+<h1>Manual de Uso — ComeID (Comedor Estudiantil)</h1>
+<p>Manual práctico para administradores, profesores y bibliotecarios del sistema de gestión del <strong>comedor</strong> del CTP de Liberia.</p>
+<hr>
+<h2>1. Introducción</h2>
+<p><strong>ComeID</strong> es el módulo de <strong>comedor</strong> de la plataforma IntegraID. Con él el personal del centro educativo puede:</p>
+<ul>
+<li>Registrar a los estudiantes y crear sus cuentas de acceso.</li>
+<li>Controlar <strong>quién comió</strong> cada día mediante <strong>escaneo de códigos QR</strong>.</li>
+<li>Planificar el <strong>menú semanal</strong> (lunes a viernes), incluso con ayuda de <strong>inteligencia artificial</strong>.</li>
+<li>Llevar la lista de <strong>invitados externos</strong>.</li>
+<li>Consultar <strong>historiales</strong> y <strong>exportar reportes</strong> (Excel/PDF).</li>
+</ul>
+<hr>
+<h3>1.1 Diagrama de flujo general del sistema</h3>
+<p><img src="diagrama_flujo_general.svg" alt="Diagrama de flujo general del sistema" style="max-width:100%;"></p>
+<p>El flujo comienza con el <strong>inicio de sesión</strong> (símbolo de óvalo). Si el correo y la contraseña son válidos, el sistema identifica el <strong>rol</strong> del usuario y le muestra las funciones permitidas:</p>
+<ul>
+<li><strong>Admin / Profesor</strong> → Panel de administración del comedor (estudiantes, escaneo QR de asistencia, menú semanal, invitados, reportes).</li>
+<li><strong>Estudiante</strong> → Portal de estudiantes (menú del día, su asistencia al comedor, notificaciones).</li>
+</ul>
+<p>En el módulo de comedor, la operación diaria típica es: <strong>iniciar sesión → abrir Escanear QR → marcar al estudiante que come → exportar la lista del día</strong>. El flujo se detalla sección por sección en los capítulos siguientes.</p>
+<hr>
+<h2>2. Acceso</h2>
+<ol>
+<li>Abra <code>https://comeid-670b9.web.app</code>.</li>
+<li>Escriba su correo y contraseña.</li>
+<li>Pulse <strong>Iniciar sesión</strong>.</li>
+<li>En la pantalla de elección de sistema pulse <strong>ComeID (Comedor)</strong>.</li>
+</ol>
+<p>Si está dentro de la biblioteca (Bibliogest), cambie desde el menú lateral con la opción <strong>Selector de app</strong>.</p>
+<hr>
+<h2>3. Estructura de la pantalla principal</h2>
+<ul>
+<li><strong>Menú lateral izquierdo:</strong> todas las secciones disponibles según su rol.</li>
+<li><strong>Barra superior:</strong> usuario conectado, ayuda, selector de idioma/tema y botón de <strong>cerrar sesión</strong>.</li>
+<li><strong>Área central:</strong> el contenido de la sección elegida.</li>
+</ul>
+<hr>
+<h2>4. Secciones del comedor</h2>
+<h3>4.1 Panel de control (Inicio)</h3>
+<p>Muestra las tarjetas resumen en tiempo real:</p>
+<ul>
+<li>Número de <strong>estudiantes registrados</strong>.</li>
+<li><strong>Asistencias de hoy</strong> (cuántos comieron).</li>
+<li><strong>Invitados del día</strong>.</li>
+<li>Preparados/sobrantes del comedor.</li>
+</ul>
+<h3>4.2 Estudiantes</h3>
+<h4>Ver y buscar</h4>
+<ol>
+<li>Pulse <strong>Estudiantes</strong>.</li>
+<li>Escriba nombre, cédula o sección en el buscador.</li>
+<li>La lista se filtra al momento; cada fila tiene botones de <strong>editar</strong>, <strong>QR</strong> y <strong>eliminar</strong>.</li>
+</ol>
+<h4>Registrar un estudiante nuevo</h4>
+<ol>
+<li>Pulse <strong>Nuevo estudiante</strong>.</li>
+<li>Complete: <strong>nombre completo</strong>, <strong>cédula</strong>, <strong>sección</strong>, <strong>nivel</strong> y <strong>tipo</strong> (Becado/Pagado).</li>
+<li>(Opcional) Tome una <strong>foto</strong> con la cámara.</li>
+<li>Si quiere darle cuenta de portal: active la casilla <strong>crear cuenta</strong> e introduzca <strong>correo y contraseña</strong>.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+</ol>
+<p>El sistema genera <strong>automáticamente el código QR</strong> del estudiante y crea su cuenta de acceso.</p>
+<blockquote>Si el correo que escribe ya está usado por otra cuenta, el sistema lo avisa: use otro correo.</blockquote>
+<h4>Editar</h4>
+<p>Pulse <strong>Editar</strong> en la fila del estudiante, cambie los datos y <strong>Guardar</strong>.</p>
+<h4>Eliminar (solo administrador)</h4>
+<p>Pulse <strong>Eliminar</strong> y confirme. <strong>No se puede deshacer.</strong></p>
+<h4>Importar estudiantes desde archivo</h4>
+<ol>
+<li>Pulse <strong>Importar</strong>.</li>
+<li>Seleccione el archivo (CSV/Excel).</li>
+<li>Revise la vista previa y confirme.</li>
+<li>Los registros válidos se crean en bloque con su QR; los inválidos se listan para corregir.</li>
+</ol>
+<h3>4.3 Escanear asistencia (QR)</h3>
+<ol>
+<li>En el menú, pulse <strong>Escanear QR</strong>.</li>
+<li><strong>Permita la cámara</strong> cuando lo pida el navegador.</li>
+<li>Acérquese al <strong>QR</strong> de la credencial o del celular del estudiante.</li>
+<li>Al detectarlo, el estudiante queda <strong>marcado como asistente del día</strong> y su nombre se muestra en pantalla.</li>
+<li>Use los botones de exportación para guardar la <strong>lista del día</strong> (Excel, PDF o CSV).</li>
+</ol>
+<p><strong>Consejos:</strong></p>
+<ul>
+<li>Ajuste la distancia y la luz para una lectura rápida.</li>
+<li>Si un estudiante no trae su QR, puede buscarlo por nombre y marcarlo manualmente (según configuración del sistema).</li>
+</ul>
+<h3>4.4 Historial de asistencia</h3>
+<ul>
+<li><strong>Historial (general):</strong> resumen de asistencias por día; exportable.</li>
+<li><strong>Historial por estudiante:</strong> todos los consumos de un estudiante en concreto.</li>
+</ul>
+<h3>4.5 Invitados externos</h3>
+<p>Los invitados son personas que <strong>no son estudiantes</strong> del CTP pero consumen en el comedor.</p>
+<ol>
+<li>Pulse <strong>Invitados</strong>.</li>
+<li>Pulse <strong>Nuevo invitado</strong>.</li>
+<li>Registre nombre, y opcionalmente cédula, motivo y frecuencia.</li>
+<li>Pulse <strong>Guardar</strong>.</li>
+<li>La lista del día se muestra y puede marcarse cuando el invitado asiste.</li>
+<li>Use <strong>Editar</strong> o <strong>Eliminar</strong> para mantener la lista al día.</li>
+</ol>
+<h3>4.6 Menú semanal</h3>
+<ol>
+<li>Pulse <strong>Menú Semanal</strong>.</li>
+<li>Para cada día (lunes a viernes) escriba el <strong>desayuno</strong> y el <strong>almuerzo</strong>.</li>
+<li>Pulse <strong>Guardar menú</strong>.</li>
+</ol>
+<p>El menú guardado se publica en el <strong>portal de estudiantes</strong> en el día correspondiente.</p>
+<h4>Menú con ayuda de la inteligencia artificial</h4>
+<ol>
+<li>En la sección de menú abra la ventana de <strong>IA</strong>.</li>
+<li>Escriba su petición: por ejemplo <em>"sugiere 5 almuerzos económicos para 300 estudiantes"</em>.</li>
+<li>Revise las sugerencias y aplique la que prefiera.</li>
+<li>Guarde el menú.</li>
+</ol>
+<blockquote>La clave de la IA se configura una vez en <strong>Configuración</strong> (solo administrador) y no está escrita en el código.</blockquote>
+<h3>4.7 Predicción de demanda (solo administrador)</h3>
+<ol>
+<li>Pulse <strong>Predicción</strong>.</li>
+<li>El sistema analiza el historial de asistencias y proyecta cuántos estudiantes podrían asistir (próximo día o semana).</li>
+<li>Use la estimación para planificar compras y reducir el desperdicio.</li>
+</ol>
+<h3>4.8 Exportar reportes (Excel/PDF)</h3>
+<p>Desde las secciones de reportes (Estudiantes, Escáner del día, Historial) use el menú <strong>Exportar</strong> y elija <strong>Excel</strong> o <strong>PDF</strong>. El archivo se descarga a su equipo.</p>
+<h3>4.9 Gestión de usuarios y roles (solo administrador)</h3>
+<ol>
+<li>Pulse <strong>Gestión de Usuarios y Roles</strong>.</li>
+<li>Verá todas las cuentas con su correo y rol.</li>
+<li>En el desplegable de cada cuenta elija <strong>admin</strong>, <strong>profesor</strong> o <strong>estudiante</strong>.</li>
+<li>Pulse <strong>Guardar cambios</strong>. El cambio es inmediato.</li>
+</ol>
+<h3>4.10 Configuración (solo administrador)</h3>
+<p>Ajuste aquí:</p>
+<ul>
+<li><strong>Idioma</strong> de la interfaz (español, inglés, portugués, francés, alemán).</li>
+<li><strong>Datos del comedor</strong> y turnos.</li>
+<li><strong>Clave de la inteligencia artificial (Gemini)</strong> para habilitar menú y predicción.</li>
+<li><strong>Versión del sistema</strong> mostrada.</li>
+</ul>
+<p>Pulse <strong>Guardar</strong> al terminar.</p>
+<hr>
+<h2>5. Preguntas frecuentes</h2>
+<p><strong>¿Puede un profesor eliminar estudiantes?</strong></p>
+<p>No. Eliminar estudiantes es exclusivo del administrador.</p>
+<p><strong>¿Qué pasa si un estudiante olvida su QR?</strong></p>
+<p>Puede marcarse manualmente desde el historial/escáner según la configuración, o volver a generar su QR desde la sección <strong>Generar QR</strong>.</p>
+<p><strong>¿Puedo cambiar el rol de un usuario yo mismo?</strong></p>
+<p>Solo el administrador gestiona roles.</p>
+<p><strong>¿El menú incluye sábados y domingos?</strong></p>
+<p>No. El menú se gestiona de lunes a viernes.</p>
+<hr>
+<h2>6. Seguridad verificada del módulo</h2>
+<ul>
+<li><strong>Estudiantes</strong> solo pueden ver sus propios datos (verificado por cédula y por cuenta).</li>
+<li><strong>Invitados, historiales y menú</strong> son de uso exclusivo del personal.</li>
+<li>Solo un <strong>admin</strong> puede borrar registros o cambiar roles.</li>
+<li>Las reglas de la base de datos son aplicadas por <strong>Firebase</strong> (no por el navegador), por lo que no se pueden saltar editando el código cliente.</li>
+</ul>
+</body>
+</html>
