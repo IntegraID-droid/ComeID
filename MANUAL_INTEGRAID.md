@@ -16,6 +16,16 @@ IntegraID es un **sistema único** que reúne, en un solo inicio de sesión y un
 
 Las tres partes **comparten los mismos datos**: si el personal registra a un estudiante en el comedor, ese estudiante aparece en la biblioteca y puede entrar a su portal. No hay que cargar datos dos veces.
 
+### 1.1 Diagrama de flujo general del sistema
+
+![Diagrama de flujo general del sistema](diagrama_flujo_general.svg)
+
+El flujo comienza con el **inicio de sesión** (símbolo de óvalo). Si el correo y la contraseña son válidos, el sistema identifica el **rol** del usuario y le muestra las funciones permitidas:
+
+- **Admin / Profesor** → Panel de administración (estudiantes, asistencia QR, menú, invitados, reportes).
+- **Bibliotecario** → Bibliogest (catálogo, socios, préstamos, reservas, devoluciones).
+- **Estudiante** → Portal de estudiantes (menú, asistencia, biblioteca, notificaciones, QR).
+
 ---
 
 ## 2. Componentes de la plataforma
@@ -120,7 +130,7 @@ Registrarse con su cédula → ver menú y asistencia → ver préstamos y reser
 - **Base de datos protegida:** todas las lecturas y escrituras pasan por reglas de seguridad de Firestore, verificadas del lado del servidor de Firebase.
 - **Cabeceras de seguridad web (CSP):** restringen qué contiene y de dónde se cargan los recursos; sin ejecución de código dinámico.
 - **Sin claves privadas en el código:** las claves de servicios (por ejemplo, la de la inteligencia artificial) no están escritas en el código fuente.
-- **Repositorio privado:** el código se mantiene en un repositorio privado de GitHub con `.gitignore` para credenciales.
+- **Repositorio de código:** el proyecto se comparte en GitHub (`https://github.com/IntegraID-droid/ComeID`) con `.gitignore` y sin credenciales, para que el equipo docente pueda revisarlo.
 
 ---
 

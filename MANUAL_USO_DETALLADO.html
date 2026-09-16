@@ -60,6 +60,15 @@ p{margin:8px 0;}
 <tr><td><strong>Portal de Estudiantes</strong></td><td><code>https://comeid-estudiantes.web.app</code></td><td>Estudiantes registrados</td></tr>
 </tbody></table>
 <p>Ambas comparten la misma base de datos: lo que registra el panel se ve en el portal y viceversa.</p>
+<h3>1.4 Diagrama de flujo general del sistema</h3>
+<p><img src="diagrama_flujo_general.svg" alt="Diagrama de flujo general del sistema" style="max-width:100%;"></p>
+<p>El flujo arranca con el <strong>inicio de sesión</strong> (óvalo = inicio/fin). Tras validar credenciales (rombo = decisión), el sistema determina el <strong>rol</strong> y dirige a cada usuario a su aplicación:</p>
+<ul>
+<li><strong>Admin / Profesor</strong> → Panel de Administración.</li>
+<li><strong>Bibliotecario</strong> → Bibliogest (Biblioteca).</li>
+<li><strong>Estudiante</strong> → Portal de Estudiantes.</li>
+</ul>
+<p>Todo el proceso termina cerrando la sesión (óvalo = fin). Las decisiones con respuesta negativa (cuenta no registrada, credenciales inválidas) regresan al paso anterior para corregir el dato.</p>
 <hr>
 <h2>2. Roles y Permisos</h2>
 <p>El sistema define <strong>tres roles de gestores</strong> y un rol de <strong>estudiante</strong>. Cada rol solo ve las secciones que le corresponden.</p>

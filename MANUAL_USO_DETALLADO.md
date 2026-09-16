@@ -44,6 +44,18 @@ Las dos aplicaciones son **frontend** (sin servidor propio): toda la lógica se 
 
 Ambas comparten la misma base de datos: lo que registra el panel se ve en el portal y viceversa.
 
+### 1.4 Diagrama de flujo general del sistema
+
+![Diagrama de flujo general del sistema](diagrama_flujo_general.svg)
+
+El flujo arranca con el **inicio de sesión** (óvalo = inicio/fin). Tras validar credenciales (rombo = decisión), el sistema determina el **rol** y dirige a cada usuario a su aplicación:
+
+- **Admin / Profesor** → Panel de Administración.
+- **Bibliotecario** → Bibliogest (Biblioteca).
+- **Estudiante** → Portal de Estudiantes.
+
+Todo el proceso termina cerrando la sesión (óvalo = fin). Las decisiones con respuesta negativa (cuenta no registrada, credenciales inválidas) regresan al paso anterior para corregir el dato.
+
 ---
 
 ## 2. Roles y Permisos

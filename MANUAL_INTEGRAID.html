@@ -37,6 +37,14 @@ p{margin:8px 0;}
 <tr><td><strong>Portal de Estudiantes</strong></td><td>Auto-servicio del estudiante</td><td><code>Manual del Panel de Estudiantes</code></td></tr>
 </tbody></table>
 <p>Las tres partes <strong>comparten los mismos datos</strong>: si el personal registra a un estudiante en el comedor, ese estudiante aparece en la biblioteca y puede entrar a su portal. No hay que cargar datos dos veces.</p>
+<h3>1.1 Diagrama de flujo general del sistema</h3>
+<p><img src="diagrama_flujo_general.svg" alt="Diagrama de flujo general del sistema" style="max-width:100%;"></p>
+<p>El flujo comienza con el <strong>inicio de sesión</strong> (símbolo de óvalo). Si el correo y la contraseña son válidos, el sistema identifica el <strong>rol</strong> del usuario y le muestra las funciones permitidas:</p>
+<ul>
+<li><strong>Admin / Profesor</strong> → Panel de administración (estudiantes, asistencia QR, menú, invitados, reportes).</li>
+<li><strong>Bibliotecario</strong> → Bibliogest (catálogo, socios, préstamos, reservas, devoluciones).</li>
+<li><strong>Estudiante</strong> → Portal de estudiantes (menú, asistencia, biblioteca, notificaciones, QR).</li>
+</ul>
 <hr>
 <h2>2. Componentes de la plataforma</h2>
 <h3>2.1 ComeID — Módulo del comedor</h3>
@@ -117,7 +125,7 @@ p{margin:8px 0;}
 <li><strong>Base de datos protegida:</strong> todas las lecturas y escrituras pasan por reglas de seguridad de Firestore, verificadas del lado del servidor de Firebase.</li>
 <li><strong>Cabeceras de seguridad web (CSP):</strong> restringen qué contiene y de dónde se cargan los recursos; sin ejecución de código dinámico.</li>
 <li><strong>Sin claves privadas en el código:</strong> las claves de servicios (por ejemplo, la de la inteligencia artificial) no están escritas en el código fuente.</li>
-<li><strong>Repositorio privado:</strong> el código se mantiene en un repositorio privado de GitHub con <code>.gitignore</code> para credenciales.</li>
+<li><strong>Repositorio de código:</strong> el proyecto se comparte en GitHub (<code>https://github.com/IntegraID-droid/ComeID</code>) con <code>.gitignore</code> y sin credenciales, para que el equipo docente pueda revisarlo.</li>
 </ul>
 <hr>
 <h2>7. Soporte y ayuda</h2>
