@@ -22,7 +22,7 @@ function renderDashboard() {
 
     c.innerHTML = `
         <div class="greeting">
-            <div class="hello">Hola, ${escaparHTML(est.nombre)} 👋</div>
+            <div class="hello">Hola, ${escaparHTML(est.nombre)}</div>
             <div class="school">CTP de Liberia · ${escaparHTML(seccion)}</div>
         </div>
 

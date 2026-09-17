@@ -50,7 +50,7 @@ function renderComedor() {
         <div class="card">
             <div class="stat-line">
                 <span class="label"><i class="fa-solid fa-circle-check"></i> Estado</span>
-                <span class="value">${esBecado ? "🟢 Becado" : "🟡 Pagado"}</span>
+                <span class="value">${esBecado ? "Becado" : "Pagado"}</span>
             </div>
             <div class="stat-line">
                 <span class="label"><i class="fa-solid fa-bowl-food"></i> Total consumos</span>
